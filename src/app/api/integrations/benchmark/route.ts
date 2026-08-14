@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { benchmarkReportSchema } from "@/lib/benchmark-schema";
 import { ingestBenchmark } from "@/lib/repository";
 import { verifyBearer } from "@/lib/security";
+import { dispatchQueuedTasksAfterResponse } from "@/lib/event-dispatch";
 
 export const runtime = "nodejs";
 
@@ -14,5 +15,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid benchmark report", details: parsed.error.flatten() }, { status: 400 });
   }
   const result = await ingestBenchmark(parsed.data);
+  dispatchQueuedTasksAfterResponse();
   return NextResponse.json({ ok: true, ...result });
 }

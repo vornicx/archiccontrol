@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { benchmarkReportSchema } from "@/lib/benchmark-schema";
 import { ingestBenchmark } from "@/lib/repository";
 import { verifyBearer } from "@/lib/security";
+import { dispatchQueuedTasksAfterResponse } from "@/lib/event-dispatch";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -20,6 +21,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Benchmark source returned an invalid report" }, { status: 502 });
   }
   const result = await ingestBenchmark(parsed.data);
+  dispatchQueuedTasksAfterResponse();
   return NextResponse.json({ ok: true, source, ...result });
 }
-
