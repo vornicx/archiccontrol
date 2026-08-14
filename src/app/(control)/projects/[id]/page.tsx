@@ -3,12 +3,14 @@ import { StatusPill } from "@/components/status-pill";
 import { Topbar } from "@/components/topbar";
 import { getProject } from "@/lib/repository";
 import { normalizeSeverity } from "@/quality/gate";
+import { journeyManifests } from "@/automation/manifests";
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const data = await getProject(id);
   if (!data) notFound();
   const { project, gate } = data;
+  const journeys = journeyManifests.get(project.id);
   return (
     <>
       <Topbar eyebrow={project.profile.replaceAll("-", " ")} title={project.name} meta={project.repository} />
@@ -25,6 +27,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       </section>
 
       <section className="gate-checks" aria-label="Quality Gate checks">
+        <article className="gate-check">
+          <StatusPill status={journeys ? "passed" : "failed"} label={journeys ? "configured" : "missing"} />
+          <div><h3>Critical Playwright journeys</h3><p>{journeys ? `${journeys.journeys.length} project contracts · desktop and mobile` : "A versioned project journey manifest is required."}</p></div>
+        </article>
         {gate.checks.map((check) => (
           <article className="gate-check" key={check.id}>
             <StatusPill status={check.status} />
@@ -58,4 +64,3 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     </>
   );
 }
-

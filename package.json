@@ -12,10 +12,12 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
+    "journeys:validate": "node --import tsx scripts/validate-journeys.ts",
+    "journeys:run": "node --import tsx scripts/run-journeys.ts",
     "quality:static": "node scripts/static-audit.mjs .",
     "test:all": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e",
-    "db:migrate": "tsx scripts/migrate.ts",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:migrate": "node --import tsx scripts/migrate.ts",
+    "db:seed": "node --import tsx scripts/seed.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

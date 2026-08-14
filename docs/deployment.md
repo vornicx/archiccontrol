@@ -7,16 +7,25 @@
 - `SESSION_SECRET` — high-entropy signing secret;
 - `INTEGRATION_SECRET` — benchmark and runner bearer token;
 - `GITHUB_WEBHOOK_SECRET` — GitHub webhook signature secret;
+- `GITHUB_APP_ID` and `GITHUB_APP_PRIVATE_KEY` — preferred repository-dispatch credentials;
+- `GITHUB_AUTOMATION_TOKEN` — optional scoped local fallback; do not use when the App is configured;
+- `AGENT_SECRET` — worker API bearer token;
 - `CRON_SECRET` — Vercel cron bearer token;
 - `BENCHMARK_URL` — defaults to the current Archic Benchmark JSON endpoint.
 
-Apply `db/migrations/001_initial_control_plane.sql`, then run the seed once. The seed contains the audited real benchmark snapshot and one real policy-ratification decision.
+Run `npm run db:migrate`, then `npm run db:seed` once. The migration runner applies every unapplied file in order. The seed contains the audited real benchmark snapshot, journey contracts, autonomous autofix queue and one policy-ratification decision.
+
+## GitHub App
+
+Create an App owned by Archic with repository permissions for Actions (write), Contents (write), Deployments (write), Metadata (read), Pull requests (write) and Checks (read). Subscribe to pull requests, workflow runs, check runs, deployments, deployment statuses and pushes. Install it only on managed Archic repositories.
+
+Webhook target: `https://control.archic.es/api/webhooks/github`. Callback URL is not required. Store the App ID and PEM private key only in Vercel; newline-escaped PEM values are supported.
 
 ## GitHub webhook
 
 Target: `https://control.archic.es/api/webhooks/github`
 
-Subscribe initially to workflow runs, check suites, pull requests, deployment statuses and issues. Use the same value as `GITHUB_WEBHOOK_SECRET`.
+Use the same generated webhook secret as `GITHUB_WEBHOOK_SECRET`. GitHub delivery IDs are deduplicated before processing.
 
 ## DNS
 
@@ -31,5 +40,8 @@ Before assigning the domain:
 3. a benchmark sync is idempotent;
 4. approving a decision writes `audit_log`;
 5. a signed GitHub test delivery is accepted;
-6. Playwright desktop and mobile suites pass against the deployment.
+6. `/api/health` reports `deploymentReady: true`;
+7. Playwright desktop and mobile suites pass against the deployment;
+8. a preview deployment produces smoke evidence without creating a human decision unless the full gate passes.
 
+The repository is deployable before project adapters are installed; missing adapters remain visible as automation work and never bypass the Quality Gate.

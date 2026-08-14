@@ -44,3 +44,12 @@ test("health endpoint exposes the active standard", async ({ request }) => {
   await expect(response.json()).resolves.toMatchObject({ ok: true, standardVersion: "1.0.0" });
 });
 
+test("agent queue and deployment readiness are visible to the owner", async ({ page }) => {
+  await login(page);
+  await page.getByRole("link", { name: "Agents" }).click();
+  await expect(page.getByRole("heading", { name: "Agent queue" })).toBeVisible();
+  await expect(page.getByText("Retry policy")).toBeVisible();
+  await page.getByRole("link", { name: "Deployments" }).click();
+  await expect(page.getByRole("heading", { name: "Previews & deployments" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Production readiness" })).toBeVisible();
+});

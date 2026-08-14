@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0", "projectId": "marbella-boat-charter", "baseUrl": "https://marbellaboatcharter.vercel.app", "timeoutMs": 30000,
+  "journeys": [
+    { "id": "home-ready", "name": "Homepage is usable", "critical": true, "viewports": ["desktop", "mobile"], "steps": [{ "action": "goto", "path": "/" }, { "action": "assertVisible", "selector": "body" }, { "action": "assertTitle", "pattern": ".+" }, { "action": "assertNoConsoleErrors" }] },
+    { "id": "booking-entry", "name": "Booking contact is reachable", "critical": true, "viewports": ["desktop", "mobile"], "steps": [{ "action": "goto", "path": "/" }, { "action": "assertAnyVisible", "selectors": ["a[href^='tel:']", "a[href*='whatsapp']", "a[href*='book']", "a[href*='contact']", "button[type='submit']"] }] }
+  ]
+}

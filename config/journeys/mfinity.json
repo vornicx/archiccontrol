@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0",
+  "projectId": "mfinity",
+  "baseUrl": "https://mfinity-premium.vercel.app",
+  "timeoutMs": 30000,
+  "journeys": [
+    { "id": "home-ready", "name": "Homepage is usable", "critical": true, "viewports": ["desktop", "mobile"], "steps": [
+      { "action": "goto", "path": "/" }, { "action": "assertVisible", "selector": "body" }, { "action": "assertTitle", "pattern": ".+" }, { "action": "assertNoConsoleErrors" }
+    ]},
+    { "id": "conversion-entry", "name": "A conversion route is reachable", "critical": true, "viewports": ["desktop", "mobile"], "steps": [
+      { "action": "goto", "path": "/" }, { "action": "assertAnyVisible", "selectors": ["a[href^='tel:']", "a[href*='whatsapp']", "a[href*='contact']", "button[type='submit']"] }
+    ]}
+  ]
+}

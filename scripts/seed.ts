@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
@@ -46,6 +46,12 @@ for (const project of report.projects) {
         issue.recommendation ?? null,
       ],
     );
+    await sql.query(
+      `insert into agent_tasks(project_id,finding_id,task_type,executor,priority,payload,idempotency_key)
+       values($1,$2,'autofix','github_dispatch',$3,$4::jsonb,$5)
+       on conflict(idempotency_key) do nothing`,
+      [project.id, `${project.id}:benchmark:${issue.id}`, Math.min(100, Math.max(1, Number(issue.priority ?? 50))), JSON.stringify({ summary: issue.title, finding: issue, standardVersion: "1.0.0" }), `seed:autofix:${project.id}:${issue.id}`],
+    );
   }
 
   await sql.query(
@@ -59,6 +65,17 @@ for (const project of report.projects) {
       `${project.score.toFixed(1)} / 100 · ${project.gates.length} active gate(s)`,
       report.generatedAt,
     ],
+  );
+}
+
+const journeyDirectory = new URL("../config/journeys/", import.meta.url);
+for (const file of (await readdir(journeyDirectory)).filter((name) => name.endsWith(".json"))) {
+  const manifest = JSON.parse(await readFile(new URL(file, journeyDirectory), "utf8"));
+  await sql.query(
+    `insert into journey_manifests(project_id,version,manifest,source,validated_at)
+     values($1,1,$2::jsonb,'control',now())
+     on conflict(project_id) do update set manifest=excluded.manifest,version=journey_manifests.version+1,validated_at=now()`,
+    [manifest.projectId, JSON.stringify(manifest)],
   );
 }
 
@@ -77,4 +94,4 @@ await sql.query(
    ) on conflict(id) do nothing`,
 );
 
-console.log(`Seeded ${report.projects.length} real benchmark projects.`);
+console.log(`Seeded ${report.projects.length} real benchmark projects and journey contracts.`);
