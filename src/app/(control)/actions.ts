@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
 import { resolveDecision } from "@/lib/repository";
+import { dispatchQueuedTasksAfterResponse } from "@/lib/event-dispatch";
 
 export async function resolveDecisionAction(formData: FormData): Promise<void> {
   await requireSession();
@@ -13,7 +14,7 @@ export async function resolveDecisionAction(formData: FormData): Promise<void> {
     throw new Error("Invalid decision resolution");
   }
   await resolveDecision(id, outcome, note);
+  dispatchQueuedTasksAfterResponse();
   revalidatePath("/");
   revalidatePath("/decisions");
 }
-

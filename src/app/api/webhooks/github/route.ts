@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { db, hasDatabase } from "@/lib/db";
 import { processGithubEvent } from "@/lib/github-events";
+import { dispatchQueuedTasksAfterResponse } from "@/lib/event-dispatch";
 import { hmacHex, secureEqual } from "@/lib/security";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   const secret = process.env.GITHUB_WEBHOOK_SECRET;
@@ -39,5 +41,6 @@ export async function POST(request: Request) {
   );
   if (!eventRows[0]) return NextResponse.json({ ok: true, duplicate: true, eventType, projectId });
   const actions = await processGithubEvent(eventType, payload, projectId, String(eventRows[0].id));
+  dispatchQueuedTasksAfterResponse();
   return NextResponse.json({ ok: true, eventType, projectId, actions });
 }

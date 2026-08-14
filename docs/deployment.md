@@ -45,3 +45,7 @@ Before assigning the domain:
 8. a preview deployment produces smoke evidence without creating a human decision unless the full gate passes.
 
 The repository is deployable before project adapters are installed; missing adapters remain visible as automation work and never bypass the Quality Gate.
+
+## Hobby and Pro scheduling
+
+The checked-in `vercel.json` is compatible with Hobby: two daily safety-net crons. Normal task dispatch is event-driven after benchmark ingestion, GitHub webhooks and human approvals, so it does not wait for a cron. On Pro, the safety net may be increased to hourly without changing application code.
