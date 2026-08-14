@@ -1,0 +1,573 @@
+{
+  "generatedAt": "2026-08-14T08:27:52.221Z",
+  "portfolio": {
+    "score": 85.2,
+    "delta": 3.4,
+    "projectsScored": 6,
+    "criticalProjects": 0,
+    "scanFailures": 0,
+    "activeGates": 3,
+    "aiUsage": {
+      "provider": "openai-compatible",
+      "completed": 5,
+      "errors": 1,
+      "inputTokens": 53859,
+      "outputTokens": 12747,
+      "totalTokens": 66606
+    }
+  },
+  "projects": [
+    {
+      "id": "mfinity",
+      "name": "Mfinity",
+      "url": "https://mfinity-premium.vercel.app",
+      "repository": "vornicx/mfinity-premium",
+      "profile": "luxury-car-rental",
+      "status": "ok",
+      "score": 81.4,
+      "rawScore": 81.4,
+      "cap": 100,
+      "tier": "Premium",
+      "delta": -2.5,
+      "categoryScores": {
+        "businessFit": 81.9,
+        "visualDesign": 57.9,
+        "ux": 84.9,
+        "conversion": 82.6,
+        "mobile": 85.6,
+        "performance": 100,
+        "seoGeo": 72.3,
+        "content": 87.6,
+        "accessibility": 96.8,
+        "securityTrust": 75.4,
+        "robustness": 100
+      },
+      "gates": [],
+      "issues": [
+        {
+          "id": "unnamed-controls",
+          "category": "accessibility",
+          "severity": "high",
+          "title": "Interactive controls have no accessible name",
+          "detail": "4% of visible links/buttons do not expose readable text, aria-label or title.",
+          "priority": 98,
+          "recommendation": "Add visible text or a precise aria-label to icon-only and otherwise unnamed controls.",
+          "evidence": "Affected ratio: 4%."
+        },
+        {
+          "id": "tiny-text",
+          "category": "visualDesign",
+          "severity": "high",
+          "title": "Text is too small to read comfortably",
+          "detail": "31% of visible sampled elements render below 12 px.",
+          "priority": 92,
+          "recommendation": "Raise the smallest typography tokens and verify metadata/helper text on mobile and desktop.",
+          "evidence": "Affected ratio: 31%. Examples: [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object]."
+        },
+        {
+          "id": "tiny-targets",
+          "category": "mobile",
+          "severity": "medium",
+          "title": "Interactive targets are too small on mobile",
+          "detail": "27% of detected links/buttons are smaller than the 44×44 px touch target used by the benchmark.",
+          "priority": 77,
+          "recommendation": "Increase the hit area of the listed controls using padding/min-size without necessarily making the visual icon itself larger.",
+          "evidence": "Affected ratio: 27%. Examples: [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object]."
+        },
+        {
+          "id": "structured-data",
+          "category": "seoGeo",
+          "severity": "medium",
+          "title": "Structured data is missing",
+          "detail": "No JSON-LD structured data was detected on the primary page.",
+          "priority": 60,
+          "recommendation": "Add only schema that matches visible content, such as Organization/LocalBusiness/Product/RealEstateAgent/Restaurant where applicable.",
+          "evidence": "JSON-LD script count: 0."
+        },
+        {
+          "id": "canonical",
+          "category": "seoGeo",
+          "severity": "medium",
+          "title": "Canonical URL is missing",
+          "detail": "The primary page does not declare its preferred canonical URL.",
+          "priority": 54,
+          "recommendation": "Add a canonical tag pointing to the preferred absolute URL for this page.",
+          "evidence": "No link[rel=\"canonical\"] was detected."
+        },
+        {
+          "id": "sitemap",
+          "category": "seoGeo",
+          "severity": "medium",
+          "title": "sitemap.xml is unavailable",
+          "detail": "The benchmark could not retrieve /sitemap.xml successfully.",
+          "priority": 45,
+          "recommendation": "Generate and publish an XML sitemap containing canonical indexable URLs, then reference it in robots.txt.",
+          "evidence": "GET /sitemap.xml did not return a successful response."
+        }
+      ],
+      "reviewedAt": "2026-08-14T08:23:31.812Z"
+    },
+    {
+      "id": "trenes-y-tranvias",
+      "name": "Trenes y Tranvías",
+      "url": "https://trenesytranvias.vercel.app",
+      "repository": "vornicx/trenesytranvias",
+      "profile": "professional-services",
+      "status": "ok",
+      "score": 83.8,
+      "rawScore": 83.8,
+      "cap": 84,
+      "tier": "Premium",
+      "delta": -0.2,
+      "categoryScores": {
+        "businessFit": 79.8,
+        "visualDesign": 76.6,
+        "ux": 88.8,
+        "conversion": 69.5,
+        "mobile": 80,
+        "performance": 100,
+        "seoGeo": 97.5,
+        "content": 80,
+        "accessibility": 85.7,
+        "securityTrust": 75.4,
+        "robustness": 100
+      },
+      "gates": [
+        {
+          "id": "tiny-mobile-targets",
+          "when": "severeTinyTargets",
+          "cap": 84,
+          "severity": "high",
+          "label": "Too many mobile tap targets are undersized"
+        }
+      ],
+      "issues": [
+        {
+          "id": "contact-path",
+          "category": "conversion",
+          "severity": "high",
+          "title": "No detectable enquiry/contact path",
+          "detail": "The page has no detected tel/mail link, contact form or booking/reservation signal.",
+          "priority": 100,
+          "recommendation": "Provide a direct, context-preserving route to enquire, reserve, book or contact the business and verify it works on mobile.",
+          "evidence": "tel/mail links: 0; forms: 0; booking signals: 0."
+        },
+        {
+          "id": "gate-tiny-mobile-targets",
+          "category": "robustness",
+          "severity": "high",
+          "title": "Too many mobile tap targets are undersized",
+          "detail": "Quality gate caps the project at 84/100 until resolved.",
+          "priority": 97,
+          "evidence": "{}"
+        },
+        {
+          "id": "tiny-targets",
+          "category": "mobile",
+          "severity": "high",
+          "title": "Interactive targets are too small on mobile",
+          "detail": "54% of detected links/buttons are smaller than the 44×44 px touch target used by the benchmark.",
+          "priority": 97,
+          "recommendation": "Increase the hit area of the listed controls using padding/min-size without necessarily making the visual icon itself larger.",
+          "evidence": "Affected ratio: 54%. Examples: [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object]."
+        },
+        {
+          "id": "tiny-text",
+          "category": "visualDesign",
+          "severity": "medium",
+          "title": "Text is too small to read comfortably",
+          "detail": "14% of visible sampled elements render below 12 px.",
+          "priority": 61,
+          "recommendation": "Raise the smallest typography tokens and verify metadata/helper text on mobile and desktop.",
+          "evidence": "Affected ratio: 14%. Examples: [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object]."
+        },
+        {
+          "id": "image-alt",
+          "category": "accessibility",
+          "severity": "medium",
+          "title": "Images are missing alternative text",
+          "detail": "25% of detected images do not have a non-empty alt attribute.",
+          "priority": 51,
+          "recommendation": "Add concise alt text to informative images and explicit empty alt text to decorative images.",
+          "evidence": "Affected ratio: 25%. Examples: https://i.ytimg.com/vi/Ma5BEoAO5ZU/maxresdefault.jpg."
+        },
+        {
+          "id": "csp",
+          "category": "securityTrust",
+          "severity": "medium",
+          "title": "Content Security Policy is missing",
+          "detail": "No Content-Security-Policy response header was detected, reducing browser-side protection against unintended script/content execution.",
+          "priority": 39,
+          "recommendation": "Introduce a report-only CSP first, inventory required origins, then enforce a least-permissive policy without breaking legitimate assets.",
+          "evidence": "content-security-policy response header not detected."
+        }
+      ],
+      "reviewedAt": "2026-08-14T08:24:43.169Z"
+    },
+    {
+      "id": "marbella-boat-charter",
+      "name": "Marbella Boat Charter",
+      "url": "https://marbellaboatcharter.vercel.app",
+      "repository": "vornicx/marbellaboatcharter",
+      "profile": "yacht-charter",
+      "status": "ok",
+      "score": 84,
+      "rawScore": 86.3,
+      "cap": 84,
+      "tier": "Premium",
+      "delta": 0,
+      "categoryScores": {
+        "businessFit": 86.9,
+        "visualDesign": 62.2,
+        "ux": 86.4,
+        "conversion": 85.1,
+        "mobile": 80,
+        "performance": 100,
+        "seoGeo": 97.5,
+        "content": 88.2,
+        "accessibility": 98.4,
+        "securityTrust": 100,
+        "robustness": 100
+      },
+      "gates": [
+        {
+          "id": "tiny-mobile-targets",
+          "when": "severeTinyTargets",
+          "cap": 84,
+          "severity": "high",
+          "label": "Too many mobile tap targets are undersized"
+        }
+      ],
+      "issues": [
+        {
+          "id": "gate-tiny-mobile-targets",
+          "category": "robustness",
+          "severity": "high",
+          "title": "Too many mobile tap targets are undersized",
+          "detail": "Quality gate caps the project at 84/100 until resolved.",
+          "priority": 100,
+          "evidence": "{}"
+        },
+        {
+          "id": "tiny-targets",
+          "category": "mobile",
+          "severity": "high",
+          "title": "Interactive targets are too small on mobile",
+          "detail": "50% of detected links/buttons are smaller than the 44×44 px touch target used by the benchmark.",
+          "priority": 100,
+          "recommendation": "Increase the hit area of the listed controls using padding/min-size without necessarily making the visual icon itself larger.",
+          "evidence": "Affected ratio: 50%. Examples: [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object]."
+        },
+        {
+          "id": "unnamed-controls",
+          "category": "accessibility",
+          "severity": "high",
+          "title": "Interactive controls have no accessible name",
+          "detail": "3% of visible links/buttons do not expose readable text, aria-label or title.",
+          "priority": 98,
+          "recommendation": "Add visible text or a precise aria-label to icon-only and otherwise unnamed controls.",
+          "evidence": "Affected ratio: 3%."
+        },
+        {
+          "id": "tiny-text",
+          "category": "visualDesign",
+          "severity": "high",
+          "title": "Text is too small to read comfortably",
+          "detail": "29% of visible sampled elements render below 12 px.",
+          "priority": 95,
+          "recommendation": "Raise the smallest typography tokens and verify metadata/helper text on mobile and desktop.",
+          "evidence": "Affected ratio: 29%. Examples: [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object]."
+        },
+        {
+          "id": "broken-links",
+          "category": "robustness",
+          "severity": "medium",
+          "title": "Internal links return errors",
+          "detail": "1 sampled internal link(s) failed the HTTP check.",
+          "priority": 73,
+          "recommendation": "Repair, redirect or remove each listed URL and verify navigation from the originating page.",
+          "evidence": "Broken URLs: https://marbellaboatcharter.vercel.app/about.html"
+        },
+        {
+          "id": "page-title-length",
+          "category": "seoGeo",
+          "severity": "low",
+          "title": "HTML title length is outside the preferred range",
+          "detail": "The title is 72 characters long, which may be too vague or truncate in search results.",
+          "priority": 24,
+          "recommendation": "Rewrite the title so it communicates the page and business clearly within a practical SERP length.",
+          "evidence": "Detected title length: 72 characters."
+        }
+      ],
+      "reviewedAt": "2026-08-14T08:25:52.251Z"
+    },
+    {
+      "id": "marbella-for-sale",
+      "name": "Marbella For Sale",
+      "url": "https://marbellaforsale.vercel.app",
+      "repository": "vornicx/marbellaforsale",
+      "profile": "premium-real-estate",
+      "status": "ok",
+      "score": 83.4,
+      "rawScore": 83.4,
+      "cap": 84,
+      "tier": "Premium",
+      "delta": 0.1,
+      "categoryScores": {
+        "businessFit": 85,
+        "visualDesign": 57.9,
+        "ux": 88.8,
+        "conversion": 83,
+        "mobile": 80,
+        "performance": 100,
+        "seoGeo": 78.8,
+        "content": 88.2,
+        "accessibility": 100,
+        "securityTrust": 92,
+        "robustness": 100
+      },
+      "gates": [
+        {
+          "id": "tiny-mobile-targets",
+          "when": "severeTinyTargets",
+          "cap": 84,
+          "severity": "high",
+          "label": "Too many mobile tap targets are undersized"
+        }
+      ],
+      "issues": [
+        {
+          "id": "gate-tiny-mobile-targets",
+          "category": "robustness",
+          "severity": "high",
+          "title": "Too many mobile tap targets are undersized",
+          "detail": "Quality gate caps the project at 84/100 until resolved.",
+          "priority": 100,
+          "evidence": "{}"
+        },
+        {
+          "id": "tiny-targets",
+          "category": "mobile",
+          "severity": "high",
+          "title": "Interactive targets are too small on mobile",
+          "detail": "51% of detected links/buttons are smaller than the 44×44 px touch target used by the benchmark.",
+          "priority": 97,
+          "recommendation": "Increase the hit area of the listed controls using padding/min-size without necessarily making the visual icon itself larger.",
+          "evidence": "Affected ratio: 51%. Examples: [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object]."
+        },
+        {
+          "id": "tiny-text",
+          "category": "visualDesign",
+          "severity": "high",
+          "title": "Text is too small to read comfortably",
+          "detail": "44% of visible sampled elements render below 12 px.",
+          "priority": 95,
+          "recommendation": "Raise the smallest typography tokens and verify metadata/helper text on mobile and desktop.",
+          "evidence": "Affected ratio: 44%. Examples: [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object] · [object Object]."
+        },
+        {
+          "id": "canonical",
+          "category": "seoGeo",
+          "severity": "medium",
+          "title": "Canonical URL is missing",
+          "detail": "The primary page does not declare its preferred canonical URL.",
+          "priority": 57,
+          "recommendation": "Add a canonical tag pointing to the preferred absolute URL for this page.",
+          "evidence": "No link[rel=\"canonical\"] was detected."
+        },
+        {
+          "id": "sitemap",
+          "category": "seoGeo",
+          "severity": "medium",
+          "title": "sitemap.xml is unavailable",
+          "detail": "The benchmark could not retrieve /sitemap.xml successfully.",
+          "priority": 47,
+          "recommendation": "Generate and publish an XML sitemap containing canonical indexable URLs, then reference it in robots.txt.",
+          "evidence": "GET /sitemap.xml did not return a successful response."
+        },
+        {
+          "id": "robots",
+          "category": "seoGeo",
+          "severity": "medium",
+          "title": "robots.txt is unavailable",
+          "detail": "The site did not return a successful /robots.txt response.",
+          "priority": 46,
+          "recommendation": "Publish a valid robots.txt and reference the sitemap when appropriate.",
+          "evidence": "GET /robots.txt did not return a successful response."
+        }
+      ],
+      "reviewedAt": "2026-08-14T08:26:57.151Z"
+    },
+    {
+      "id": "la-bocana",
+      "name": "La Bocana",
+      "url": "https://labocana.vercel.app",
+      "repository": "vornicx/la-bocana-web-v8-mobile",
+      "profile": "premium-restaurant",
+      "status": "ok",
+      "score": 93.4,
+      "rawScore": 93.4,
+      "cap": 100,
+      "tier": "Exceptional",
+      "delta": 0.9,
+      "categoryScores": {
+        "businessFit": 87.5,
+        "visualDesign": 88.5,
+        "ux": 87.8,
+        "conversion": 88.8,
+        "mobile": 100,
+        "performance": 100,
+        "seoGeo": 97.5,
+        "content": 89.4,
+        "accessibility": 100,
+        "securityTrust": 100,
+        "robustness": 100
+      },
+      "gates": [],
+      "issues": [
+        {
+          "id": "ai-0",
+          "category": "Conversion",
+          "severity": "high",
+          "title": "Cookie consent blocks the first reservation decision",
+          "detail": "The consent layer is visually treated as the dominant experience at the precise moment a first-time visitor should decide to reserve.",
+          "priority": 7,
+          "recommendation": "Redesign the initial consent treatment for mobile as a compact bottom sheet or a deliberately sized modal that does not obscure the hero CTA; keep a clear rejection/close-equivalent choice where legally appropriate. On desktop, reduce its footprint and avoid placing it over the action area.",
+          "evidence": "In the 768 x 1680 mobile screenshot, the consent panel occupies roughly the lower 35% of the viewport and covers the lower hero, including the primary reservation area. In the 1440 x 1000 desktop screenshot, it still occupies a substantial bottom-right block over the hero. The stated critical journey is reservation."
+        },
+        {
+          "id": "ai-1",
+          "category": "Visual Design",
+          "severity": "high",
+          "title": "Mobile hero loses its premium editorial control",
+          "detail": "The mobile hero composition does not preserve the desktop editorial hierarchy.",
+          "priority": 6,
+          "recommendation": "Create a mobile-specific hero composition: constrain the headline to intentional, fully visible line breaks; reserve a protected text area; place the award as a separate small provenance element; and choose a crop that immediately communicates waterfront dining. Validate it after consent is displayed, not only after dismissal.",
+          "evidence": "The mobile screenshot shows “Mar de verdad.” breaking over several oversized lines, with the lower portion hidden by the consent layer. “BEST OF THE BEST 2025” sits over/alongside the hero title area rather than reading as a disciplined accreditation. The desktop hero has a coherent single-line headline and clearer sequence."
+        },
+        {
+          "id": "ai-2",
+          "category": "Business Fit",
+          "severity": "medium",
+          "title": "Atmosphere arrives before enough booking reassurance",
+          "detail": "The above-the-fold mobile experience delays proof of the practical information a destination restaurant guest needs before committing.",
+          "priority": 5,
+          "recommendation": "Keep the compact mobile reservation control, then surface a concise secondary decision layer immediately below or within the first scroll: menu, today's/weekly opening hours, marina location, and one specific proof point such as a rating/source, award source, or notable press mention.",
+          "evidence": "The business requirements explicitly include menu discoverability, location clarity, opening hours, mobile-first reservation, and trust signals. The scan records only one trust signal and the initial mobile screenshot exposes location and an award, but not hours, menu access, reservation availability, review authority, or a readable full reservation CTA."
+        },
+        {
+          "id": "ai-3",
+          "category": "Content",
+          "severity": "medium",
+          "title": "Hero messaging is elegant but insufficiently ownable",
+          "detail": "The copy is polished but too abstract on the first view to establish a differentiated culinary reason to choose La Bocana.",
+          "priority": 4,
+          "recommendation": "Retain the headline, but strengthen the supporting line with a concrete culinary cue and occasion signal, then route directly to a visible menu preview or signature dishes. Use specific provenance or seasonal product language only where it can be substantiated.",
+          "evidence": "The H1 is “Mar de verdad.” and the supporting line is “Cocina mediterránea, producto reconocible y una mesa donde el horizonte también forma parte del servicio.” The scan shows 450 words across the page, but the screenshot's initial message centers on poetic positioning rather than signature food, cuisine detail, or service proposition."
+        },
+        {
+          "id": "ai-4",
+          "category": "Visual Design",
+          "severity": "medium",
+          "title": "CTA treatment feels more system-mixed than deliberately branded",
+          "detail": "The call-to-action system is not yet fully unified at the level expected of a premium hospitality brand.",
+          "priority": 4,
+          "recommendation": "Define and apply a small CTA hierarchy across header, hero, booking flow, and consent UI. Keep the primary booking action consistent in label, contrast, spacing, and state; reserve outlined treatments for secondary actions and utility navigation.",
+          "evidence": "The automated DOM scan reports an inconsistent button ratio of 0.4286. In the desktop screenshot, the outlined header “RESERVAR,” solid pale hero “RESERVAR MESA,” dark consent “ENTENDIDO,” outlined “VER DETALLE,” and text-link cookie policy all use materially different treatments. Some variation is appropriate by context, but the visual vocabulary is broad for a short first view."
+        }
+      ],
+      "reviewedAt": "2026-08-14T08:27:36.247Z"
+    },
+    {
+      "id": "noguera",
+      "name": "Inmobiliaria Noguera",
+      "url": "https://inmobiliaria-noguera.vercel.app",
+      "repository": "vornicx/Inmobiliaria-Noguera",
+      "profile": "premium-real-estate",
+      "status": "ok",
+      "score": 85.2,
+      "rawScore": 85.2,
+      "cap": 100,
+      "tier": "Premium",
+      "delta": 22.4,
+      "categoryScores": {
+        "businessFit": 68,
+        "visualDesign": 97.5,
+        "ux": 72.3,
+        "conversion": 65,
+        "mobile": 100,
+        "performance": 100,
+        "seoGeo": 91.9,
+        "content": 66.7,
+        "accessibility": 100,
+        "securityTrust": 75.4,
+        "robustness": 100
+      },
+      "gates": [],
+      "issues": [
+        {
+          "id": "primary-cta",
+          "category": "conversion",
+          "severity": "high",
+          "title": "No clear primary CTA was detected",
+          "detail": "The page does not expose a visible action matching common booking, reservation, enquiry, contact or purchase intent.",
+          "priority": 100,
+          "recommendation": "Define the page’s single primary conversion action and make it explicit in the hero/navigation with business-specific wording.",
+          "evidence": "Primary CTA detector count: 0."
+        },
+        {
+          "id": "contact-path",
+          "category": "conversion",
+          "severity": "high",
+          "title": "No detectable enquiry/contact path",
+          "detail": "The page has no detected tel/mail link, contact form or booking/reservation signal.",
+          "priority": 100,
+          "recommendation": "Provide a direct, context-preserving route to enquire, reserve, book or contact the business and verify it works on mobile.",
+          "evidence": "tel/mail links: 0; forms: 0; booking signals: 0."
+        },
+        {
+          "id": "h1-structure",
+          "category": "content",
+          "severity": "medium",
+          "title": "Primary H1 is missing",
+          "detail": "The page contains 0 H1 elements. The benchmark expects one clear primary heading for the page.",
+          "priority": 53,
+          "recommendation": "Keep one page-level H1 and demote secondary section headings to H2/H3 according to hierarchy.",
+          "evidence": "H1 count: 0."
+        },
+        {
+          "id": "csp",
+          "category": "securityTrust",
+          "severity": "medium",
+          "title": "Content Security Policy is missing",
+          "detail": "No Content-Security-Policy response header was detected, reducing browser-side protection against unintended script/content execution.",
+          "priority": 38,
+          "recommendation": "Introduce a report-only CSP first, inventory required origins, then enforce a least-permissive policy without breaking legitimate assets.",
+          "evidence": "content-security-policy response header not detected."
+        },
+        {
+          "id": "privacy-link",
+          "category": "securityTrust",
+          "severity": "low",
+          "title": "Privacy policy link was not detected",
+          "detail": "The page does not expose a detectable privacy-policy link.",
+          "priority": 20,
+          "recommendation": "Link the current privacy policy from an appropriate persistent location such as the footer and relevant forms.",
+          "evidence": "No anchor matching privacy/privacidad was detected."
+        },
+        {
+          "id": "legal-link",
+          "category": "securityTrust",
+          "severity": "low",
+          "title": "Legal/terms/cookies link was not detected",
+          "detail": "No legal, terms or cookies link was found in the page links.",
+          "priority": 18,
+          "recommendation": "Expose the legal notice/terms/cookie information required for the site and jurisdiction.",
+          "evidence": "No anchor matching legal/terms/cookies was detected."
+        }
+      ],
+      "reviewedAt": "2026-08-14T08:27:52.210Z"
+    }
+  ]
+}
+

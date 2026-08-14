@@ -1,0 +1,29 @@
+:root {
+  color-scheme: dark;
+  --ink-0: #090b0a;
+  --ink-1: #0f1210;
+  --ink-2: #151916;
+  --ink-3: #1d231f;
+  --line-soft: #262d28;
+  --line-strong: #374039;
+  --paper-0: #f0f2ed;
+  --paper-1: #b8beb7;
+  --paper-2: #7d877f;
+  --signal: #b7f5c8;
+  --signal-strong: #6de69a;
+  --signal-ink: #0a2d18;
+  --warning: #f3d18a;
+  --danger: #ff9b91;
+  --info: #a8c8ff;
+  --shadow-deep: 0 28px 90px rgb(0 0 0 / 34%);
+  --focus-ring: 0 0 0 2px var(--ink-0), 0 0 0 4px var(--signal);
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --layer-nav: 20;
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+}
+

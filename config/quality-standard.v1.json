@@ -1,0 +1,1051 @@
+{
+  "schemaVersion": "1.0",
+  "version": "1.0.0",
+  "frozenAt": "2026-08-14",
+  "source": {
+    "repository": "vornicx/archic-design-system",
+    "path": "05-standards/03-quality-gate.md",
+    "sha": "fa3c04edbcaa5c0f7d26eb2460dc1b22a4c2f7be"
+  },
+  "intent": "Quality is pass/fail. Scores prioritize work; they never override a blocking failure.",
+  "thresholds": {
+    "benchmarkScoreForApproval": 90,
+    "lcpMs": 2000,
+    "inpMs": 200,
+    "cls": 0.05,
+    "lighthouse": {
+      "performance": 90,
+      "accessibility": 95,
+      "bestPractices": 95,
+      "seo": 95
+    },
+    "touchTargetPx": 44,
+    "touchTargetSeparationPx": 8
+  },
+  "promotionPolicy": {
+    "preview": [
+      "all automated blocking checks pass",
+      "no critical findings",
+      "no unresolved critical journey failure"
+    ],
+    "humanApproval": [
+      "preview policy passes",
+      "manual evidence complete or exception documented",
+      "benchmark score >= 90",
+      "polish pass ready"
+    ],
+    "production": [
+      "Vadim approves final_approval decision",
+      "main branch checks pass",
+      "deployment smoke tests pass"
+    ]
+  },
+  "needsVadimPolicy": {
+    "allowedDecisionTypes": [
+      "final_approval",
+      "brand_direction",
+      "risk_acceptance",
+      "scope_change",
+      "irreversible_action"
+    ],
+    "suppress": [
+      "retryable automation failure",
+      "ordinary QA finding",
+      "benchmark regression with known fix",
+      "successful run"
+    ],
+    "escalateAfterRetries": 3
+  },
+  "sections": [
+    {
+      "id": "a",
+      "code": "A",
+      "name": "Brand coherence",
+      "checks": [
+        {
+          "id": "a-01-the-identity-is-consistent-across-every-page-and-every",
+          "label": "The identity is consistent across every page and every state",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "a-02-typefaces-used-as-specified-no-stray-system-fonts-no-u",
+          "label": "Typefaces used as specified — no stray system fonts, no unintended weights",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "a-03-colours-from-the-token-set-only-no-hardcoded-hex-anywh",
+          "label": "Colours from the token set only — no hardcoded hex anywhere (`grep -rE \"#[0-9a-fA-F]{3,8}\" src/` returns only tokens and documented exceptions)",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "a-04-tone-of-voice-consistent-including-error-messages-empt",
+          "label": "Tone of voice consistent — including error messages, empty states, confirmation emails and the 404",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "a-05-iconography-consistent-in-weight-size-terminals-and-me",
+          "label": "Iconography consistent in weight, size, terminals and metaphor",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "a-06-favicon-app-icons-og-images-all-present-and-correct",
+          "label": "Favicon, app icons, OG images all present and correct",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "a-07-the-site-would-look-wrong-with-a-competitor-s-logo-on-",
+          "label": "The site would look wrong with a competitor's logo on it",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "a-08-direction-vector-divergence-check-passed-and-recorded-",
+          "label": "**Direction Vector divergence check passed and recorded** in the project registry",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b",
+      "code": "B",
+      "name": "Visual craft",
+      "checks": [
+        {
+          "id": "b-01-all-alignments-correct-optically-not-just-mathematical",
+          "label": "All alignments correct — optically, not just mathematically",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-02-spacing-from-the-scale-everywhere-no-arbitrary-values",
+          "label": "Spacing from the scale everywhere; no arbitrary values",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-03-rhythm-consistent-page-to-page",
+          "label": "Rhythm consistent page to page",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-04-hierarchy-clear-on-every-screen-blur-test-at-12-px-pro",
+          "label": "Hierarchy clear on every screen (blur test at 12 px produces the intended grouping)",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-05-no-orphans-in-headlines-or-pull-quotes-at-any-breakpoi",
+          "label": "No orphans in headlines or pull quotes at any breakpoint",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-06-tracking-correct-at-every-size",
+          "label": "Tracking correct at every size",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-07-all-images-2-density-no-compression-artefacts-no-upsca",
+          "label": "All images ≥2× density; no compression artefacts, no upscaling, no soft downscales",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-08-crops-correct-at-every-breakpoint-looked-at-not-assume",
+          "label": "Crops correct at every breakpoint — **looked at, not assumed**",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-09-consistent-grade-across-the-whole-image-set",
+          "label": "Consistent grade across the whole image set",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-10-aspect-ratios-consistent-within-each-set",
+          "label": "Aspect ratios consistent within each set",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-11-no-layout-shift-on-load-watch-it-load-don-t-just-read-",
+          "label": "No layout shift on load — watch it load, don't just read the CLS number",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "b-12-text-never-sits-on-an-unmanaged-photograph",
+          "label": "Text never sits on an unmanaged photograph",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c",
+      "code": "C",
+      "name": "Interaction",
+      "checks": [
+        {
+          "id": "c-01-every-interactive-element-has-all-six-states",
+          "label": "Every interactive element has all six states",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-02-hover-140-ms-everywhere",
+          "label": "Hover ≤140 ms, everywhere",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-03-focus-visible-on-every-element-3-1-never-removed",
+          "label": "Focus visible on every element, ≥3:1, never removed",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-04-loading-states-hold-layout-button-widths-do-not-change",
+          "label": "Loading states hold layout — button widths do not change",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-05-transitions-consistent-with-the-declared-motion-intens",
+          "label": "Transitions consistent with the declared motion intensity",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-06-dialogs-focus-trapped-restored-escape-closes-scroll-lo",
+          "label": "Dialogs: focus trapped, restored, Escape closes, scroll locked without shift",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-07-drawers-slide-from-their-own-edge-swipe-dismiss-on-tou",
+          "label": "Drawers slide from their own edge; swipe-dismiss on touch",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-08-no-hover-only-information-or-actions",
+          "label": "No hover-only information or actions",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-09-feedback-within-100-ms-of-every-action",
+          "label": "Feedback within 100 ms of every action",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "c-10-repeated-path-interactions-under-200-ms",
+          "label": "Repeated-path interactions under 200 ms",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d",
+      "code": "D",
+      "name": "UX",
+      "checks": [
+        {
+          "id": "d-01-primary-task-completable-in-the-minimum-reasonable-ste",
+          "label": "Primary task completable in the minimum reasonable steps",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-02-navigation-clear-current-location-always-evident",
+          "label": "Navigation clear; current location always evident",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-03-one-primary-action-per-view",
+          "label": "One primary action per view",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-04-every-form-validation-errors-success-preserved-input",
+          "label": "Every form: validation, errors, success, preserved input",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-05-every-error-says-what-happened-why-and-what-to-do-next",
+          "label": "Every error says what happened, why, and what to do next",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-06-every-empty-state-designed-not-defaulted",
+          "label": "Every empty state designed, not defaulted",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-07-destructive-actions-reversible-or-specifically-confirm",
+          "label": "Destructive actions reversible or specifically confirmed",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-08-back-button-works-scroll-position-restored",
+          "label": "Back button works; scroll position restored",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-09-deep-links-work-including-filtered-views",
+          "label": "Deep links work, including filtered views",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-10-404-and-500-pages-designed-and-helpful",
+          "label": "404 and 500 pages designed and helpful",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "d-11-the-interaction-signature-exists-and-works-on-touch",
+          "label": "The interaction signature exists and works on touch",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e",
+      "code": "E",
+      "name": "Responsive",
+      "checks": [
+        {
+          "id": "e-01-320-px-no-horizontal-overflow-anywhere",
+          "label": "320 px — no horizontal overflow anywhere",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "e-02-375-px-the-mobile-composition-not-a-squeeze",
+          "label": "375 px — the mobile composition, not a squeeze",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "e-03-768-px-decided-explicitly-not-left-to-chance",
+          "label": "768 px — decided explicitly, not left to chance",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "e-04-1024-1440-2560-px",
+          "label": "1024 / 1440 / 2560 px",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "e-05-landscape-phone-short-viewport-sticky-headers-do-not-e",
+          "label": "Landscape phone (short viewport — sticky headers do not eat the screen)",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "e-06-200-browser-zoom-nothing-lost-nothing-overlapping",
+          "label": "200% browser zoom — nothing lost, nothing overlapping",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "e-07-touch-targets-44-px-8-px-apart",
+          "label": "Touch targets ≥44 px, ≥8 px apart",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "e-08-sticky-elements-do-not-cover-content-safe-areas-respec",
+          "label": "Sticky elements do not cover content; safe areas respected",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "e-09-tables-have-a-real-mobile-strategy",
+          "label": "Tables have a real mobile strategy",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "e-10-forms-usable-with-the-on-screen-keyboard-open",
+          "label": "Forms usable with the on-screen keyboard open",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f",
+      "code": "F",
+      "name": "Content",
+      "checks": [
+        {
+          "id": "f-01-zero-lorem-ipsum-zero-placeholder-images-zero",
+          "label": "Zero Lorem ipsum, zero placeholder images, zero `TODO`",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "f-02-every-headline-passes-the-find-and-replace-test",
+          "label": "Every headline passes the find-and-replace test",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "f-03-zero-banned-phrases-from-the-anti-slop-registry",
+          "label": "Zero banned phrases from the anti-slop registry",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "f-04-spelling-and-grammar-checked-by-a-native-speaker-in-ev",
+          "label": "Spelling and grammar checked by a native speaker, in every language",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "f-05-all-facts-verified-with-the-client-prices-hours-addres",
+          "label": "All facts verified with the client — prices, hours, addresses, phone numbers, names, dates",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "f-06-every-phone-number-dialled-every-email-sent-to-every-l",
+          "label": "**Every phone number dialled. Every email sent to. Every link clicked.**",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "f-07-every-map-pin-checked-against-the-real-address",
+          "label": "Every map pin checked against the real address",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "f-08-legal-pages-present-and-current-privacy-cookies-terms-",
+          "label": "Legal pages present and current (privacy, cookies, terms, and for Spain: aviso legal / LSSI)",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "f-09-every-language-complete-no-untranslated-strings",
+          "label": "Every language complete — no untranslated strings",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "f-10-copyright-year-correct-and-auto-updating",
+          "label": "Copyright year correct and auto-updating",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "g",
+      "code": "G",
+      "name": "Technical",
+      "checks": [
+        {
+          "id": "g-01-lcp-2-0-s-inp-200-ms-cls-0-05-on-a-mid-tier-android-ov",
+          "label": "LCP ≤2.0 s, INP ≤200 ms, CLS ≤0.05 on a mid-tier Android over 4G",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-02-lighthouse-90-performance-95-accessibility-95-best-pra",
+          "label": "Lighthouse ≥90 performance, ≥95 accessibility, ≥95 best practices, ≥95 SEO",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "g-03-axe-devtools-zero-violations",
+          "label": "axe DevTools: zero violations",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "g-04-primary-task-completable-by-keyboard-alone",
+          "label": "Primary task completable by keyboard alone",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-05-screen-reader-tested-on-the-primary-flow",
+          "label": "Screen reader tested on the primary flow",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-06-reduced-motion-verified-by-using-the-site-with-it-enab",
+          "label": "Reduced motion verified **by using the site with it enabled**",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "g-07-semantic-html-one-no-skipped-heading-levels",
+          "label": "Semantic HTML; one `<h1>`; no skipped heading levels",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "g-08-meta-titles-and-descriptions-unique-and-written-not-ge",
+          "label": "Meta titles and descriptions unique and written, not generated",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "g-09-og-and-twitter-cards-present-tested-in-a-real-preview",
+          "label": "OG and Twitter cards present, tested in a real preview",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-10-structured-data-where-relevant-localbusiness-restauran",
+          "label": "Structured data where relevant (LocalBusiness, Restaurant, Product, Article)",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-11-canonical-urls",
+          "label": "`sitemap.xml`, `robots.txt`, canonical URLs",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "g-12-301s-from-any-old-urls",
+          "label": "301s from any old URLs",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-13-https-hsts-security-headers",
+          "label": "HTTPS, HSTS, security headers",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "g-14-forms-tested-end-to-end-including-that-the-email-actua",
+          "label": "Forms tested end to end — **including that the email actually arrives**",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-15-analytics-and-rum-installed-and-firing",
+          "label": "Analytics and RUM installed and firing",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-16-cookie-consent-compliant-and-not-blocking-rendering",
+          "label": "Cookie consent compliant and not blocking rendering",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "g-17-tested-in-safari-chrome-firefox-and-safari-ios",
+          "label": "Tested in Safari, Chrome, Firefox, and Safari iOS",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "h",
+      "code": "H",
+      "name": "System integrity",
+      "checks": [
+        {
+          "id": "h-01-exits-0",
+          "label": "`node tools/validate-project.mjs project.config.json` exits 0",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "h-02-and-match-the-frozen-archic-release",
+          "label": "`styles/foundation.css` and `styles/semantic-contract.css` match the frozen Archic release (`verify-client-foundation.mjs`)",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "h-03-semantic-contract-validator-passes-every-brand-role-ex",
+          "label": "Semantic contract validator passes — every brand role explicitly mapped",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "h-04-exits-0-for-the-default-theme-and-every-additional-the",
+          "label": "`node tools/contrast.mjs styles/brand.css` exits 0 for the default theme **and every additional theme** (WCAG + APCA)",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "h-05-no-out-of-srgb-gamut-failures-in-contrast-validation",
+          "label": "No out-of-sRGB gamut failures in contrast validation",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "h-06-has-zero-blocking-findings",
+          "label": "`node tools/static-audit.mjs .` has zero blocking findings",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "h-07-no-arbitrary-z-index-values-outside-the-scale",
+          "label": "No arbitrary z-index values outside the scale",
+          "verification": "automated",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner"
+          ]
+        },
+        {
+          "id": "h-08-brand-file-header-complete-vector-archetype-fonts-lice",
+          "label": "Brand file header complete: vector, archetype, fonts, licences, contrast verification date",
+          "verification": "hybrid",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "quality-runner",
+            "human-signoff"
+          ]
+        },
+        {
+          "id": "h-09-asset-provenance-exists-and-matches-the-declared-proto",
+          "label": "Asset provenance exists and matches the declared prototype/production policy",
+          "verification": "manual",
+          "required": true,
+          "blocking": true,
+          "evidenceSources": [
+            "human-signoff"
+          ]
+        }
+      ]
+    }
+  ],
+  "polish": {
+    "id": "i-polish",
+    "name": "Polish pass",
+    "verification": "manual",
+    "required": true,
+    "blocking": true,
+    "label": "Nothing feels like a template, demo or unfinished product."
+  }
+}
+
