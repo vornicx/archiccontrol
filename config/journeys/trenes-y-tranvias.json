@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0", "projectId": "trenes-y-tranvias", "baseUrl": "https://trenesytranvias.vercel.app", "timeoutMs": 30000,
+  "journeys": [
+    { "id": "home-ready", "name": "Homepage is usable", "critical": true, "viewports": ["desktop", "mobile"], "steps": [{ "action": "goto", "path": "/" }, { "action": "assertVisible", "selector": "body" }, { "action": "assertTitle", "pattern": ".+" }, { "action": "assertNoConsoleErrors" }] },
+    { "id": "primary-navigation", "name": "Primary navigation is exposed", "critical": true, "viewports": ["desktop", "mobile"], "steps": [{ "action": "goto", "path": "/" }, { "action": "assertAnyVisible", "selectors": ["nav a", "header a", "button[aria-label*='menu' i]", "button[aria-expanded]"] }] }
+  ]
+}

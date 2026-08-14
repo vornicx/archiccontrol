@@ -78,6 +78,49 @@ export interface DashboardData {
   };
 }
 
+export type AgentTaskStatus = "queued" | "dispatched" | "leased" | "running" | "succeeded" | "failed" | "blocked" | "cancelled";
+export type AgentTaskType = "research" | "implement" | "autofix" | "quality" | "playwright" | "benchmark" | "preview" | "smoke" | "monitor";
+
+export interface AgentTask {
+  id: string;
+  projectId: string | null;
+  projectName: string | null;
+  repositoryFullName: string | null;
+  findingId: string | null;
+  type: AgentTaskType;
+  executor: "worker" | "github_dispatch";
+  status: AgentTaskStatus;
+  priority: number;
+  attempt: number;
+  maxAttempts: number;
+  summary: string;
+  input: Record<string, unknown>;
+  externalUrl: string | null;
+  lastError: string | null;
+  createdAt: string;
+}
+
+export interface DeploymentPreview {
+  id: string;
+  projectId: string;
+  projectName: string;
+  environment: "preview" | "production";
+  gitSha: string | null;
+  gitRef: string | null;
+  url: string;
+  status: "queued" | "building" | "ready" | "failed" | "promoted" | "superseded";
+  qualityStatus: GateStatus;
+  smokeStatus: "unknown" | "queued" | "running" | "passed" | "failed";
+  createdAt: string;
+}
+
+export interface AutomationData {
+  tasks: AgentTask[];
+  previews: DeploymentPreview[];
+  counts: { queued: number; running: number; blocked: number; readyPreviews: number };
+  deploymentReadiness: Array<{ label: string; ready: boolean; detail: string }>;
+}
+
 export interface BenchmarkIssue {
   id: string;
   category?: string;
@@ -123,4 +166,3 @@ export interface BenchmarkReport {
   };
   projects: BenchmarkProject[];
 }
-

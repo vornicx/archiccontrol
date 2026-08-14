@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0", "projectId": "la-bocana", "baseUrl": "https://labocana.vercel.app", "timeoutMs": 30000,
+  "journeys": [
+    { "id": "home-ready", "name": "Homepage is usable", "critical": true, "viewports": ["desktop", "mobile"], "steps": [{ "action": "goto", "path": "/" }, { "action": "assertVisible", "selector": "body" }, { "action": "assertTitle", "pattern": ".+" }, { "action": "assertNoConsoleErrors" }] },
+    { "id": "reservation-entry", "name": "Reservation contact is reachable", "critical": true, "viewports": ["desktop", "mobile"], "steps": [{ "action": "goto", "path": "/" }, { "action": "assertAnyVisible", "selectors": ["a[href^='tel:']", "a[href*='reserv']", "a[href*='contact']", "a[href*='whatsapp']"] }] }
+  ]
+}

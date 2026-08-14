@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0", "projectId": "marbella-for-sale", "baseUrl": "https://marbellaforsale.vercel.app", "timeoutMs": 30000,
+  "journeys": [
+    { "id": "home-ready", "name": "Homepage is usable", "critical": true, "viewports": ["desktop", "mobile"], "steps": [{ "action": "goto", "path": "/" }, { "action": "assertVisible", "selector": "body" }, { "action": "assertTitle", "pattern": ".+" }, { "action": "assertNoConsoleErrors" }] },
+    { "id": "property-discovery", "name": "Property discovery entry is visible", "critical": true, "viewports": ["desktop", "mobile"], "steps": [{ "action": "goto", "path": "/" }, { "action": "assertAnyVisible", "selectors": ["a[href*='propert']", "a[href*='listing']", "form[role='search']", "input[type='search']", "a[href*='contact']"] }] }
+  ]
+}

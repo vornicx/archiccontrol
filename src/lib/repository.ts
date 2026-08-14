@@ -4,6 +4,7 @@ import { buildBootstrapDashboard, benchmarkSnapshot, resolveBootstrapDecision } 
 import { db, hasDatabase } from "@/lib/db";
 import type { BenchmarkReport, DashboardData, Decision, ProjectSummary, WorkflowRun } from "@/lib/types";
 import { evaluateQualityGate, normalizeSeverity } from "@/quality/gate";
+import { enqueueTask } from "@/lib/automation-repository";
 
 type Row = Record<string, unknown>;
 
@@ -150,7 +151,7 @@ export async function resolveDecision(
     `update decisions
      set status = $2, resolved_by = 'vadim', resolution_note = $3, resolved_at = now()
      where id = $1 and status = 'pending'
-     returning id`,
+     returning id,project_id,type`,
     [id, outcome, note],
   );
   if (rows.length === 0) throw new Error("Decision is no longer pending");
@@ -159,6 +160,20 @@ export async function resolveDecision(
      values ('vadim', $2, 'decision', $1, jsonb_build_object('note', $3))`,
     [id, outcome, note],
   );
+  const decision = rows[0] as Row;
+  if (decision.type === "final_approval" && decision.project_id) {
+    const deploymentId = id.startsWith("preview:") && id.endsWith(":approval") ? id.slice(8, -9) : null;
+    if (outcome === "approved") {
+      await enqueueTask({
+        projectId: String(decision.project_id), type: "preview", executor: "github_dispatch", priority: 100,
+        payload: { summary: "Promote the approved immutable preview", decisionId: id, deploymentId, resolutionNote: note },
+        idempotencyKey: `promote:${id}`, maxAttempts: 3,
+      });
+    } else if (deploymentId) {
+      await sql.query(`update deployment_previews set status='superseded' where id=$1`, [deploymentId]);
+      await sql.query(`update projects set phase='quality' where id=$1`, [decision.project_id]);
+    }
+  }
 }
 
 export async function ingestBenchmark(report: BenchmarkReport): Promise<{ projects: number; findings: number }> {
@@ -223,6 +238,20 @@ export async function ingestBenchmark(report: BenchmarkReport): Promise<{ projec
           issue.recommendation ?? null,
         ],
       );
+      await enqueueTask({
+        projectId: project.id,
+        findingId: `${project.id}:benchmark:${issue.id}`,
+        type: "autofix",
+        executor: "github_dispatch",
+        priority: Math.min(100, Math.max(1, issue.priority ?? 50)),
+        payload: {
+          summary: issue.title,
+          finding: { id: issue.id, severity: normalizeSeverity(issue.severity), detail: issue.detail ?? "", recommendation: issue.recommendation ?? "" },
+          qualityRunId: runId,
+          standardVersion: "1.0.0",
+        },
+        idempotencyKey: `autofix:${project.id}:${issue.id}:${report.generatedAt}`,
+      });
     }
 
     await sql.query(
