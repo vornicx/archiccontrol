@@ -8,13 +8,13 @@ type Check = { ok: boolean; detail: string };
 
 export async function GET() {
   const checks: Record<string, Check> = {
+    researchHandoff: {
+      ok: true,
+      detail: "Research is delegated to the scheduled ChatGPT task; no OpenAI API key is required in Control",
+    },
     database: {
       ok: hasDatabase(),
       detail: hasDatabase() ? "DATABASE_URL configured" : "DATABASE_URL missing",
-    },
-    openai: {
-      ok: Boolean(process.env.OPENAI_API_KEY),
-      detail: process.env.OPENAI_API_KEY ? "OPENAI_API_KEY configured" : "OPENAI_API_KEY missing",
     },
     githubPublisher: {
       ok: Boolean(process.env.GITHUB_AUTOMATION_TOKEN && process.env.GITHUB_PROSPECT_OWNER),
@@ -58,14 +58,7 @@ export async function GET() {
 
   const ok = Object.values(checks).every((check) => check.ok);
   return NextResponse.json(
-    {
-      ok,
-      checkedAt: new Date().toISOString(),
-      checks,
-    },
-    {
-      status: ok ? 200 : 503,
-      headers: { "Cache-Control": "no-store" },
-    },
+    { ok, checkedAt: new Date().toISOString(), checks },
+    { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
   );
 }

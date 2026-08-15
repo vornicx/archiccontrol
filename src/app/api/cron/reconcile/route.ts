@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, hasDatabase } from "@/lib/db";
 import { verifyBearer } from "@/lib/security";
-import { runDailyProspecting } from "@/prospecting/engine";
+import { publishVerifiedProspect } from "@/prospecting/publish-verified";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -55,11 +55,34 @@ export async function POST(request: Request) {
     on conflict(id) do nothing returning id
   `);
 
-  let prospecting: Awaited<ReturnType<typeof runDailyProspecting>>;
-  try {
-    prospecting = await runDailyProspecting();
-  } catch (error) {
-    prospecting = { status: "blocked", runDate: new Date().toISOString().slice(0, 10), reason: error instanceof Error ? error.message : String(error) };
+  const madridDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  const prospectRows = await sql.query(`select status from prospects where run_date=$1::date limit 1`, [madridDate]);
+  let prospecting:
+    | Awaited<ReturnType<typeof publishVerifiedProspect>>
+    | { status: "not_configured"; runDate: string; reason: string };
+
+  if (prospectRows.length === 0) {
+    prospecting = {
+      status: "not_configured",
+      runDate: madridDate,
+      reason: "No ChatGPT-verified prospect exists for today yet.",
+    };
+  } else {
+    try {
+      prospecting = await publishVerifiedProspect();
+    } catch (error) {
+      prospecting = {
+        status: "blocked",
+        runDate: madridDate,
+        reason: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   return NextResponse.json({
