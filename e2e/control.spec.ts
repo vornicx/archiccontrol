@@ -17,7 +17,7 @@ test("daily prospecting is a first-class Control surface", async ({ page }) => {
   await openControl(page);
   await page.getByRole("link", { name: "Prospects" }).click();
   await expect(page.getByRole("heading", { name: "Daily prospecting" })).toBeVisible();
-  await expect(page.getByText("Verified operating status")).toBeVisible();
+  await expect(page.getByText("Verified operating status", { exact: true })).toBeVisible();
   await expect(page.getByText("One prototype per day")).toBeVisible();
 });
 
