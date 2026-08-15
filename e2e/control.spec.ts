@@ -1,23 +1,28 @@
 import { expect, test } from "@playwright/test";
 
-async function login(page: import("@playwright/test").Page) {
+async function openControl(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await expect(page).toHaveURL(/\/login$/);
-  await page.getByLabel("Owner access key").fill("playwright-access-key");
-  await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL("/");
 }
 
-test("owner can enter Control and see the protected decision boundary", async ({ page }) => {
-  await login(page);
+test("Control opens directly and exposes the decision boundary", async ({ page }) => {
+  await openControl(page);
   await expect(page.getByRole("heading", { name: "Operating overview" })).toBeVisible();
   await expect(page.getByText("Needs Vadim", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ratify Archic Quality Standard v1.0" })).toBeVisible();
   await expect(page.getByText("La Bocana", { exact: true })).toBeVisible();
 });
 
+test("daily prospecting is a first-class Control surface", async ({ page }) => {
+  await openControl(page);
+  await page.getByRole("link", { name: "Prospects" }).click();
+  await expect(page.getByRole("heading", { name: "Daily prospecting" })).toBeVisible();
+  await expect(page.getByText("Verified operating status", { exact: true })).toBeVisible();
+  await expect(page.getByText("One prototype per day")).toBeVisible();
+});
+
 test("quality standard and a project gate are fully navigable", async ({ page }) => {
-  await login(page);
+  await openControl(page);
   await page.getByRole("link", { name: "Quality Standard" }).click();
   await expect(page.getByRole("heading", { name: "Archic Quality Standard" })).toBeVisible();
   await expect(page.getByText("88").first()).toBeVisible();
@@ -29,7 +34,7 @@ test("quality standard and a project gate are fully navigable", async ({ page })
 
 test("mobile overview has no horizontal overflow", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("mobile"), "mobile-only assertion");
-  await login(page);
+  await openControl(page);
   const dimensions = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
@@ -44,8 +49,8 @@ test("health endpoint exposes the active standard", async ({ request }) => {
   await expect(response.json()).resolves.toMatchObject({ ok: true, standardVersion: "1.0.0" });
 });
 
-test("agent queue and deployment readiness are visible to the owner", async ({ page }) => {
-  await login(page);
+test("agent queue and deployment readiness are visible", async ({ page }) => {
+  await openControl(page);
   await page.getByRole("link", { name: "Agents" }).click();
   await expect(page.getByRole("heading", { name: "Agent queue" })).toBeVisible();
   await expect(page.getByText("Retry policy")).toBeVisible();
