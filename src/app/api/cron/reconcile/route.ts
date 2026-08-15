@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { db, hasDatabase } from "@/lib/db";
 import { verifyBearer } from "@/lib/security";
+import { runDailyProspecting } from "@/prospecting/engine";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   if (!verifyBearer(request, process.env.CRON_SECRET)) {
@@ -52,7 +54,21 @@ export async function POST(request: Request) {
     from agent_tasks t where t.status='blocked'
     on conflict(id) do nothing returning id
   `);
-  return NextResponse.json({ ok: true, recovered: expiredRows.filter((row) => row.status === "queued").length, blocked: expiredRows.filter((row) => row.status === "blocked").length, escalated: findingRows.length + taskRows.length });
+
+  let prospecting: Awaited<ReturnType<typeof runDailyProspecting>>;
+  try {
+    prospecting = await runDailyProspecting();
+  } catch (error) {
+    prospecting = { status: "blocked", runDate: new Date().toISOString().slice(0, 10), reason: error instanceof Error ? error.message : String(error) };
+  }
+
+  return NextResponse.json({
+    ok: true,
+    recovered: expiredRows.filter((row) => row.status === "queued").length,
+    blocked: expiredRows.filter((row) => row.status === "blocked").length,
+    escalated: findingRows.length + taskRows.length,
+    prospecting,
+  });
 }
 
 export const GET = POST;
