@@ -1,0 +1,38 @@
+name: Prospecting Production Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/app/api/health/prospecting/**"
+      - "src/prospecting/**"
+      - "vercel.json"
+      - ".github/workflows/prospecting-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify production prospecting runtime
+        shell: bash
+        run: |
+          set -u
+          url="https://archiccontrol.vercel.app/api/health/prospecting"
+          for attempt in $(seq 1 18); do
+            code=$(curl --silent --show-error --location --output response.json --write-out "%{http_code}" "$url" || true)
+            echo "Attempt $attempt: HTTP $code"
+            cat response.json 2>/dev/null || true
+            echo
+            if [ "$code" = "200" ] && jq -e '.ok == true' response.json >/dev/null 2>&1; then
+              echo "Prospecting runtime is ready."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Prospecting runtime did not become healthy."
+          exit 1
