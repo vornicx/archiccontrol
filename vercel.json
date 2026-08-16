@@ -3,6 +3,6 @@
   "framework": "nextjs",
   "crons": [
     { "path": "/api/cron/reconcile", "schedule": "0 1 * * *" },
-    { "path": "/api/cron/sync-benchmark", "schedule": "35 5 * * *" }
+    { "path": "/api/cron/sync-benchmark", "schedule": "5 7 * * *" }
   ]
 }
