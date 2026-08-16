@@ -11,6 +11,7 @@ on:
     paths:
       - '.github/workflows/archic-control.yml'
       - '.archic/control-worker.mjs'
+      - '.archic/vercel-trusted-fetch.mjs'
 
 permissions:
   id-token: write
@@ -44,6 +45,13 @@ jobs:
             printf '%s=%s\n' "$key" "$value" >> "$GITHUB_ENV"
           }
 
+          vercel_oidc="$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r '.value')"
+          [ -n "$vercel_oidc" ] && [ "$vercel_oidc" != "null" ] || { echo "GitHub OIDC token for Vercel was not issued." >&2; exit 1; }
+          echo "::add-mask::$vercel_oidc"
+          write_env VERCEL_TRUST_TOKEN "$vercel_oidc"
+
           if [ "$GITHUB_EVENT_NAME" = "repository_dispatch" ]; then
             write_env CONTROL_URL "$DISPATCH_CONTROL_URL"
             write_env TASK_ID "$DISPATCH_TASK_ID"
@@ -74,14 +82,16 @@ jobs:
             exit 1
           fi
 
-          oidc="$(curl --fail-with-body --silent --show-error \
+          control_oidc="$(curl --fail-with-body --silent --show-error \
             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=archic-control" | jq -r '.value')"
-          [ -n "$oidc" ] && [ "$oidc" != "null" ] || { echo "GitHub OIDC token was not issued." >&2; exit 1; }
+          [ -n "$control_oidc" ] && [ "$control_oidc" != "null" ] || { echo "GitHub OIDC token for Archic Control was not issued." >&2; exit 1; }
+          echo "::add-mask::$control_oidc"
 
           lease="$(curl --fail-with-body --silent --show-error --retry 2 --retry-all-errors \
             -X POST "$CONTROL_URL/api/agents/repository-lease" \
-            -H "Authorization: Bearer $oidc" \
+            -H "Authorization: Bearer $control_oidc" \
+            -H "x-vercel-trusted-oidc-idp-token: $vercel_oidc" \
             -H 'Content-Type: application/json' \
             --data '{"supportedTaskTypes":["autofix"]}')"
 
@@ -113,6 +123,7 @@ jobs:
         run: |
           curl --fail-with-body --silent --show-error \
             -X POST "$CONTROL_URL/api/agents/tasks/$TASK_ID/start" \
+            -H "x-vercel-trusted-oidc-idp-token: $VERCEL_TRUST_TOKEN" \
             -H "Content-Type: application/json" \
             --data "$(jq -nc --arg token "$CALLBACK_TOKEN" --arg url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '{leaseToken:$token,externalUrl:$url}')"
       - if: steps.resolve.outputs.has_task == 'true'
@@ -123,6 +134,7 @@ jobs:
         continue-on-error: true
         env:
           BASE_REF: ${{ github.event.repository.default_branch }}
+          NODE_OPTIONS: --import=./.archic/vercel-trusted-fetch.mjs
         run: node .archic/control-worker.mjs
       - name: Return evidence
         if: always() && steps.resolve.outputs.has_task == 'true'
@@ -133,6 +145,7 @@ jobs:
           if [ -f .archic/task-result.json ]; then result="$(jq -c . .archic/task-result.json)"; fi
           curl --fail-with-body --silent --show-error \
             -X POST "$CONTROL_URL/api/agents/tasks/$TASK_ID/complete" \
+            -H "x-vercel-trusted-oidc-idp-token: $VERCEL_TRUST_TOKEN" \
             -H "Content-Type: application/json" \
             --data "$(jq -nc --arg token "$CALLBACK_TOKEN" --arg outcome "$outcome" --argjson result "$result" --arg error "${{ steps.task.outcome == 'success' && '' || 'Project worker failed; inspect the linked Actions run.' }}" '{leaseToken:$token,outcome:$outcome,result:$result,error:($error|select(length>0))}')"
       - name: Preserve failure status
