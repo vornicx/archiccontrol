@@ -1,12 +1,13 @@
 import { createHash, randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { ensureFreshBenchmark } from "@/lib/benchmark-sync";
 import { db, hasDatabase } from "@/lib/db";
 import { verifyGitHubActionsOidcToken } from "@/lib/github-oidc";
 import { isGithubAutomationConfigured } from "@/lib/github-app";
 
 export const runtime = "nodejs";
-export const maxDuration = 20;
+export const maxDuration = 60;
 
 const bodySchema = z.object({
   supportedTaskTypes: z.array(z.literal("autofix")).min(1).max(1),
@@ -38,6 +39,17 @@ export async function POST(request: Request) {
   }
   if (!isGithubAutomationConfigured()) {
     return NextResponse.json({ ok: true, task: null, reason: "github_publication_not_configured" });
+  }
+
+  const freshness = await ensureFreshBenchmark();
+  if (!freshness.health.fresh) {
+    return NextResponse.json({
+      ok: true,
+      task: null,
+      reason: "benchmark_stale",
+      detail: freshness.error ?? "Fresh benchmark evidence could not be established.",
+      lastBenchmarkAt: freshness.health.lastBenchmarkAt,
+    });
   }
 
   const sql = db();
