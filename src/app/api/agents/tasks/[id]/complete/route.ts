@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { preserveAutofixFinding } from "@/autofix/task";
+import { preserveAutofixFinding, recordAutofixPullRequest } from "@/autofix/task";
 import { completeTask } from "@/lib/automation-repository";
 import { verifyBearer } from "@/lib/security";
 
@@ -12,6 +12,11 @@ const bodySchema = z.object({
   error: z.string().max(2_000).optional(),
 });
 
+function safePullRequestUrl(value: unknown): string | null {
+  if (typeof value !== "string" || value.length > 500) return null;
+  return /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/pull\/\d+$/.test(value) ? value : null;
+}
+
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const machineAuthorized = verifyBearer(request, process.env.AGENT_SECRET);
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
@@ -19,6 +24,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const { id } = await context.params;
   try {
     const status = await completeTask({ id, ...parsed.data });
+    const pullRequestUrl = safePullRequestUrl(parsed.data.result.pullRequestUrl);
+    if (status === "succeeded" && pullRequestUrl) {
+      await recordAutofixPullRequest(id, pullRequestUrl);
+    }
     await preserveAutofixFinding(id, status);
     return NextResponse.json({ ok: true, status });
   } catch (error) {
