@@ -6,7 +6,7 @@ import {
   isSensitiveAutofixPath,
   sanitizeAutofixPlan,
   type AutofixPlan,
-} from "../src/autofix/policy.ts";
+} from "../src/autofix/policy";
 
 function applyPlan(changes: AutofixPlan["changes"]): AutofixPlan {
   return {
