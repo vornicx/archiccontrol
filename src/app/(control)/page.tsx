@@ -3,7 +3,7 @@ import { ProjectList } from "@/components/project-list";
 import { RunList } from "@/components/run-list";
 import { Topbar } from "@/components/topbar";
 import { getAutomationHealth } from "@/lib/automation-health";
-import { getBenchmarkHealth } from "@/lib/benchmark-health";
+import { ensureFreshBenchmark } from "@/lib/benchmark-sync";
 import { getDashboard } from "@/lib/repository";
 import styles from "./overview.module.css";
 
@@ -22,11 +22,12 @@ function formatAge(hours: number | null): string {
 }
 
 export default async function OverviewPage() {
-  const [data, benchmarkHealth, automationHealth] = await Promise.all([
+  const benchmarkSync = await ensureFreshBenchmark();
+  const [data, automationHealth] = await Promise.all([
     getDashboard(),
-    getBenchmarkHealth(),
     getAutomationHealth(),
   ]);
+  const benchmarkHealth = benchmarkSync.health;
   const actionableDecisions = benchmarkHealth.fresh
     ? data.needsVadim
     : data.needsVadim.filter((decision) => decision.type !== "final_approval");
@@ -40,8 +41,9 @@ export default async function OverviewPage() {
           <div>
             <strong>Benchmark data is stale</strong>
             <p>
-              Quality scores may not reflect the latest portfolio run. Final approvals remain blocked until fresh evidence is ingested.
+              Control attempted an automatic refresh, but fresh quality evidence is not available yet. Final approvals remain blocked.
               {benchmarkHealth.lastBenchmarkAt ? ` Last successful ingestion: ${formatTimestamp(benchmarkHealth.lastBenchmarkAt)}.` : " No successful ingestion is recorded."}
+              {benchmarkSync.error ? ` Recovery detail: ${benchmarkSync.error}.` : ""}
             </p>
           </div>
           <div className={styles.freshnessMeta}>{formatAge(benchmarkHealth.ageHours)}</div>
