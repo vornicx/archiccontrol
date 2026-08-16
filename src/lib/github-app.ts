@@ -115,15 +115,13 @@ export async function repositoryTaskReadiness(
     return { ready: false, detail: "Repository package.json could not be inspected for task capability." };
   }
 
-  const requiredScript = taskType === "autofix"
-    ? "archic:autofix"
+  const requiredScript = taskType === "autofix" || taskType === "quality" || taskType === "smoke"
+    ? null
     : taskType === "playwright"
       ? "test:e2e"
       : taskType === "preview"
         ? "archic:preview"
-        : taskType === "quality" || taskType === "smoke"
-          ? null
-          : `archic:${taskType}`;
+        : `archic:${taskType}`;
 
   if (requiredScript && typeof scripts[requiredScript] !== "string") {
     return { ready: false, detail: `Repository task capability missing: npm script ${requiredScript}` };
@@ -161,4 +159,34 @@ export async function dispatchRepositoryTask(
     method: "POST",
     body: JSON.stringify({ event_type: "archic_control_task", client_payload: clientPayload }),
   });
+}
+
+export async function ensureRepositoryPullRequest(
+  repositoryFullName: string,
+  input: { head: string; title: string; body: string },
+): Promise<{ url: string; number: number }> {
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repositoryFullName)) throw new Error("Invalid repository name");
+  if (!/^archic\/autofix-[A-Za-z0-9._-]+$/.test(input.head)) throw new Error("Invalid Archic autofix branch");
+  const token = await repositoryToken(repositoryFullName);
+  const repository = await github<{ default_branch: string; owner: { login: string } }>(`/repos/${repositoryFullName}`, token);
+  const headQuery = encodeURIComponent(`${repository.owner.login}:${input.head}`);
+  const existing = await github<Array<{ html_url: string; number: number }>>(
+    `/repos/${repositoryFullName}/pulls?state=open&head=${headQuery}&base=${encodeURIComponent(repository.default_branch)}`,
+    token,
+  );
+  if (existing[0]) return { url: existing[0].html_url, number: existing[0].number };
+
+  const pull = await github<{ html_url: string; number: number }>(`/repos/${repositoryFullName}/pulls`, token, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: input.title.slice(0, 200),
+      body: input.body.slice(0, 20_000),
+      head: input.head,
+      base: repository.default_branch,
+      draft: true,
+      maintainer_can_modify: true,
+    }),
+  });
+  return { url: pull.html_url, number: pull.number };
 }

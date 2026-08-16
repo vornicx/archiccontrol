@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { preserveAutofixFinding } from "@/autofix/task";
 import { completeTask } from "@/lib/automation-repository";
 import { verifyBearer } from "@/lib/security";
 
@@ -18,6 +19,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const { id } = await context.params;
   try {
     const status = await completeTask({ id, ...parsed.data });
+    await preserveAutofixFinding(id, status);
     return NextResponse.json({ ok: true, status });
   } catch (error) {
     if (error instanceof Error && error.message.includes("lease")) {
