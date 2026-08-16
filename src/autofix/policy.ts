@@ -33,6 +33,14 @@ const BLOCKED_PREFIXES = [
 
 const EDITABLE_EXTENSIONS = /\.(?:[cm]?[jt]sx?|css|scss|sass|less|html|mdx?|json|txt|xml)$/i;
 const SAFE_NEW_ROOT_FILES = new Set(["robots.txt", "sitemap.xml"]);
+const CREDENTIAL_PATTERNS = [
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
+  /\bsk-[A-Za-z0-9_-]{20,}\b/,
+  /\bghp_[A-Za-z0-9]{20,}\b/,
+  /\bgithub_pat_[A-Za-z0-9_]{20,}\b/,
+  /\bAKIA[A-Z0-9]{16}\b/,
+  /(?:api[_-]?key|secret|access[_-]?token|password)\s*[:=]\s*["'][^"'\n]{16,}["']/i,
+];
 
 export function normalizeAutofixPath(value: string): string | null {
   const path = value.trim().replaceAll("\\", "/").replace(/^\.\//, "");
@@ -51,6 +59,10 @@ export function isSensitiveAutofixPath(value: string): boolean {
   if (lower === ".env" || lower.startsWith(".env.")) return true;
   if (lower.includes("secret") || lower.includes("credential")) return true;
   return false;
+}
+
+export function containsSensitiveAutofixContent(content: string): boolean {
+  return CREDENTIAL_PATTERNS.some((pattern) => pattern.test(content));
 }
 
 export function isAutofixContextPath(value: string): boolean {
@@ -93,7 +105,7 @@ export function sanitizeAutofixPlan(
     if (!exists && !isSafeNewAutofixPath(path)) continue;
     if (!EDITABLE_EXTENSIONS.test(path)) continue;
     const bytes = Buffer.byteLength(change.content, "utf8");
-    if (bytes === 0 || bytes > 80_000 || totalBytes + bytes > 180_000) continue;
+    if (bytes === 0 || bytes > 80_000 || totalBytes + bytes > 180_000 || containsSensitiveAutofixContent(change.content)) continue;
     seen.add(path);
     totalBytes += bytes;
     changes.push({ path, content: change.content, reason: change.reason.slice(0, 500) });
