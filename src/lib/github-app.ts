@@ -21,16 +21,20 @@ function appJwt(): string {
   return `${unsigned}.${signer.sign(key).toString("base64url")}`;
 }
 
+function githubHeaders(token: string, extra?: HeadersInit): HeadersInit {
+  return {
+    Accept: "application/vnd.github+json",
+    Authorization: `Bearer ${token}`,
+    "User-Agent": "archic-control/1.0",
+    "X-GitHub-Api-Version": "2022-11-28",
+    ...extra,
+  };
+}
+
 async function github<T>(path: string, token: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API}${path}`, {
     ...init,
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${token}`,
-      "User-Agent": "archic-control/1.0",
-      "X-GitHub-Api-Version": "2022-11-28",
-      ...init?.headers,
-    },
+    headers: githubHeaders(token, init?.headers),
     cache: "no-store",
   });
   if (!response.ok) {
@@ -39,6 +43,24 @@ async function github<T>(path: string, token: string, init?: RequestInit): Promi
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
+}
+
+async function githubContent(
+  repositoryFullName: string,
+  path: string,
+  token: string,
+): Promise<{ content: string; encoding: string } | null> {
+  const endpoint = `/repos/${repositoryFullName}/contents/${path}`;
+  const response = await fetch(`${API}${endpoint}`, {
+    headers: githubHeaders(token),
+    cache: "no-store",
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const detail = (await response.text()).slice(0, 500);
+    throw new Error(`GitHub ${response.status} ${endpoint}: ${detail}`);
+  }
+  return response.json() as Promise<{ content: string; encoding: string }>;
 }
 
 async function repositoryToken(repositoryFullName: string): Promise<string> {
@@ -54,6 +76,63 @@ async function repositoryToken(repositoryFullName: string): Promise<string> {
 
 export function isGithubAutomationConfigured(): boolean {
   return Boolean(process.env.GITHUB_AUTOMATION_TOKEN || (process.env.GITHUB_APP_ID && process.env.GITHUB_APP_PRIVATE_KEY));
+}
+
+export async function repositoryTaskReadiness(
+  repositoryFullName: string,
+  taskType: string,
+): Promise<{ ready: boolean; detail: string }> {
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repositoryFullName)) {
+    return { ready: false, detail: "Repository name is invalid." };
+  }
+
+  const token = await repositoryToken(repositoryFullName);
+  const [workflow, worker, packageFile] = await Promise.all([
+    githubContent(repositoryFullName, ".github/workflows/archic-control.yml", token),
+    githubContent(repositoryFullName, ".archic/control-worker.mjs", token),
+    githubContent(repositoryFullName, "package.json", token),
+  ]);
+
+  const missing: string[] = [];
+  if (!workflow) missing.push(".github/workflows/archic-control.yml");
+  if (!worker) missing.push(".archic/control-worker.mjs");
+  if (!packageFile) missing.push("package.json");
+  if (missing.length) {
+    return { ready: false, detail: `Repository adapter missing: ${missing.join(", ")}` };
+  }
+
+  let scripts: Record<string, unknown> = {};
+  try {
+    if (packageFile.encoding !== "base64") throw new Error("Unexpected package.json encoding");
+    const decoded = Buffer.from(packageFile.content.replaceAll("\n", ""), "base64").toString("utf8");
+    const pkg = JSON.parse(decoded) as { scripts?: Record<string, unknown> };
+    scripts = pkg.scripts ?? {};
+  } catch {
+    return { ready: false, detail: "Repository package.json could not be inspected for task capability." };
+  }
+
+  const requiredScript = taskType === "autofix"
+    ? "archic:autofix"
+    : taskType === "playwright"
+      ? "test:e2e"
+      : taskType === "preview"
+        ? "archic:preview"
+        : taskType === "quality" || taskType === "smoke"
+          ? null
+          : `archic:${taskType}`;
+
+  if (requiredScript && typeof scripts[requiredScript] !== "string") {
+    return { ready: false, detail: `Repository task capability missing: npm script ${requiredScript}` };
+  }
+
+  if (taskType === "quality") {
+    const qualityScripts = ["lint", "typecheck", "test", "build", "test:e2e"];
+    if (!qualityScripts.some((script) => typeof scripts[script] === "string")) {
+      return { ready: false, detail: "Repository exposes no executable quality scripts." };
+    }
+  }
+
+  return { ready: true, detail: "Repository worker adapter and task capability are installed." };
 }
 
 export async function dispatchRepositoryTask(
