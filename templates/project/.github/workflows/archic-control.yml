@@ -49,7 +49,7 @@ jobs:
             write_env TASK_ID "$DISPATCH_TASK_ID"
             write_env CALLBACK_TOKEN "$DISPATCH_CALLBACK_TOKEN"
             write_env TASK_TYPE "$DISPATCH_TASK_TYPE"
-            printf '%s' "$DISPATCH_TASK_INPUT" | base64 -w0 | xargs -I{} sh -c 'printf "TASK_INPUT_B64=%s\n" "$1" >> "$GITHUB_ENV"' _ {}
+            write_env TASK_INPUT "$(printf '%s' "$DISPATCH_TASK_INPUT" | jq -c .)"
             echo "has_task=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -96,7 +96,7 @@ jobs:
           write_env TASK_ID "$TASK_ID"
           write_env CALLBACK_TOKEN "$(printf '%s' "$lease" | jq -r '.task.callbackToken')"
           write_env TASK_TYPE "$(printf '%s' "$lease" | jq -r '.task.taskType')"
-          printf '%s' "$lease" | jq -c '.task.payload' | base64 -w0 | xargs -I{} sh -c 'printf "TASK_INPUT_B64=%s\n" "$1" >> "$GITHUB_ENV"' _ {}
+          write_env TASK_INPUT "$(printf '%s' "$lease" | jq -c '.task.payload')"
           echo "has_task=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
