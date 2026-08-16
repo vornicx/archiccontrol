@@ -10,6 +10,8 @@ const taskId = process.env.TASK_ID;
 const controlUrl = process.env.CONTROL_URL;
 const callbackToken = process.env.CALLBACK_TOKEN;
 const baseRef = process.env.BASE_REF || "main";
+const githubToken = process.env.GITHUB_TOKEN;
+const repositoryFullName = process.env.GITHUB_REPOSITORY;
 const input = JSON.parse(process.env.TASK_INPUT || "{}");
 const pkg = JSON.parse(await readFile("package.json", "utf8"));
 const scripts = pkg.scripts || {};
@@ -39,6 +41,27 @@ function run(script, required = false) {
 async function git(args, options = {}) {
   const result = await execFileAsync("git", args, { maxBuffer: 8 * 1024 * 1024, ...options });
   return String(result.stdout || "").trim();
+}
+
+async function github(path, init = {}) {
+  if (!githubToken || !repositoryFullName) throw new Error("GitHub Actions repository token is unavailable");
+  const response = await fetch(`https://api.github.com${path}`, {
+    ...init,
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${githubToken}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "archic-control-worker/1.0",
+      ...(init.headers || {}),
+    },
+    signal: AbortSignal.timeout(30_000),
+  });
+  const payload = response.status === 204 ? null : await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const detail = payload && typeof payload === "object" ? payload.message || JSON.stringify(payload).slice(0, 500) : "request failed";
+    throw new Error(`GitHub ${response.status} ${path}: ${detail}`);
+  }
+  return payload;
 }
 
 function normalizedPath(value) {
@@ -164,6 +187,48 @@ async function requestAutofixPlan(fileIndex, files, round) {
   return response.plan;
 }
 
+async function ensureDraftPullRequest(branch, gitSha, summary, changedPaths) {
+  if (!repositoryFullName) throw new Error("GITHUB_REPOSITORY is unavailable");
+  const owner = repositoryFullName.split("/")[0];
+  const existing = await github(
+    `/repos/${repositoryFullName}/pulls?state=open&head=${encodeURIComponent(`${owner}:${branch}`)}&base=${encodeURIComponent(baseRef)}`,
+  );
+  if (Array.isArray(existing) && existing[0]?.html_url) return existing[0].html_url;
+
+  const titleSource = String(input.summary || input.finding?.id || "quality finding").slice(0, 180);
+  const body = [
+    "## Archic Control autofix",
+    "",
+    `Task: \`${taskId}\``,
+    `Commit: \`${gitSha}\``,
+    "",
+    summary,
+    "",
+    "### Changed files",
+    ...changedPaths.map((path) => `- \`${path}\``),
+    "",
+    "### Safety boundary",
+    "This draft PR was generated from one verified quality finding. The planner was limited to repository-provided file contents, blocked from secrets, CI, deployment configuration, dependencies and database files, and capped at four changed files.",
+    "",
+    "The finding remains in `fixing` until a later benchmark run independently verifies that the defect disappeared.",
+  ].join("\n");
+
+  const pull = await github(`/repos/${repositoryFullName}/pulls`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: `fix: ${titleSource}`,
+      body,
+      head: branch,
+      base: baseRef,
+      draft: true,
+      maintainer_can_modify: true,
+    }),
+  });
+  if (!pull?.html_url) throw new Error("GitHub did not return a pull request URL");
+  return pull.html_url;
+}
+
 async function executeAutofix() {
   const context = await buildAutofixContext();
   let files = [...context.files];
@@ -227,21 +292,16 @@ async function executeAutofix() {
   const gitSha = await git(["rev-parse", "HEAD"]);
   await git(["push", "--force-with-lease", "origin", `HEAD:refs/heads/${branch}`]);
 
-  const publication = await postJson(`/api/agents/tasks/${taskId}/autofix-publish`, {
-    leaseToken: callbackToken,
-    gitRef: branch,
-    gitSha,
-    summary: String(plan.summary || "Bounded Archic Control autofix."),
-    changedFiles: changedPaths,
-  });
+  const summary = String(plan.summary || "Bounded Archic Control autofix.");
+  const pullRequestUrl = await ensureDraftPullRequest(branch, gitSha, summary, changedPaths);
 
   evidence.push({ check: "bounded-autofix", status: "passed", changedFiles: changedPaths.length });
   return {
     gitRef: branch,
     gitSha,
-    summary: String(plan.summary || "Bounded Archic Control autofix."),
+    summary,
     changedFiles: changedPaths,
-    pullRequestUrl: publication.pullRequestUrl,
+    pullRequestUrl,
   };
 }
 

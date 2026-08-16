@@ -4,7 +4,6 @@ import { z } from "zod";
 import { ensureFreshBenchmark } from "@/lib/benchmark-sync";
 import { db, hasDatabase } from "@/lib/db";
 import { verifyGitHubActionsOidcToken } from "@/lib/github-oidc";
-import { isGithubAutomationConfigured } from "@/lib/github-app";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -36,9 +35,6 @@ export async function POST(request: Request) {
 
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json({ ok: true, task: null, reason: "autofix_not_configured" });
-  }
-  if (!isGithubAutomationConfigured()) {
-    return NextResponse.json({ ok: true, task: null, reason: "github_publication_not_configured" });
   }
 
   const freshness = await ensureFreshBenchmark();
