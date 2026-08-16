@@ -1,0 +1,55 @@
+name: Configure Archic repository Actions permissions
+
+on:
+  push:
+    branches:
+      - agent/repo-settings-batch
+    paths:
+      - .github/workflows/repo-settings-batch.yml
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable write + PR creation for Archic repositories
+        env:
+          GH_ADMIN_TOKEN: ${{ secrets.ARCHIC_ADMIN_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_ADMIN_TOKEN:-}" ]; then
+            echo "ARCHIC_ADMIN_TOKEN is not configured" >&2
+            exit 1
+          fi
+
+          repos=(
+            "vornicx/archiccontrol"
+            "vornicx/archic-benchmark"
+            "vornicx/Inmobiliaria-Noguera"
+            "vornicx/la-bocana-web-v8-mobile"
+            "vornicx/marbellaboatcharter"
+            "vornicx/marbellaforsale"
+            "vornicx/mfinity-premium"
+            "vornicx/trenesytranvias"
+            "vornicx/zusto-cafe-v2-final"
+          )
+
+          failed=0
+          for repo in "${repos[@]}"; do
+            code="$(curl --silent --show-error --output /tmp/resp.json --write-out '%{http_code}' \
+              --request PUT \
+              --header "Authorization: Bearer $GH_ADMIN_TOKEN" \
+              --header "Accept: application/vnd.github+json" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$repo/actions/permissions/workflow" \
+              --data '{"default_workflow_permissions":"write","can_approve_pull_request_reviews":true}')"
+            if [ "$code" = "204" ]; then
+              echo "OK $repo"
+            else
+              echo "FAILED $repo HTTP $code" >&2
+              jq -r '.message // empty' /tmp/resp.json >&2 || true
+              failed=1
+            fi
+          done
+
+          exit "$failed"
