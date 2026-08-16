@@ -36,7 +36,7 @@ function healthFrom(lastBenchmarkAt: string | null, activeProjects: number): Ben
     : null;
 
   return {
-    fresh: ageHours !== null && ageHours <= STALE_AFTER_HOURS,
+    fresh: activeProjects > 0 && ageHours !== null && ageHours <= STALE_AFTER_HOURS,
     lastBenchmarkAt,
     ageHours,
     activeProjects,
@@ -51,7 +51,7 @@ export async function getBenchmarkHealth(): Promise<BenchmarkHealth> {
 
   const rows = await db().query(`
     select
-      max(last_benchmark_at) as last_benchmark_at,
+      min(last_benchmark_at) filter (where status='active') as last_benchmark_at,
       count(*) filter (where status='active')::int as active_projects
     from projects
   `);
