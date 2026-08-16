@@ -31,6 +31,12 @@ function responsesEndpoint(): string {
   return base.endsWith("/v1") ? `${base}/responses` : `${base}/v1/responses`;
 }
 
+function boundedInteger(value: string | undefined, fallback: number, min: number, max: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(parsed)));
+}
+
 function planSchema() {
   return {
     type: "object",
@@ -112,6 +118,8 @@ ${input.fileIndex.join("\n")}
 PROVIDED FILE CONTENTS
 ${fileContext}`;
 
+  const maxOutputTokens = boundedInteger(process.env.AUTOFIX_MAX_OUTPUT_TOKENS, 12_000, 2_000, 24_000);
+  const requestTimeoutMs = boundedInteger(process.env.AUTOFIX_REQUEST_TIMEOUT_MS, 95_000, 30_000, 105_000);
   const response = await fetch(responsesEndpoint(), {
     method: "POST",
     headers: {
@@ -121,7 +129,7 @@ ${fileContext}`;
     body: JSON.stringify({
       model: process.env.AUTOFIX_MODEL || "gpt-5.6-terra",
       input: prompt,
-      max_output_tokens: Number(process.env.AUTOFIX_MAX_OUTPUT_TOKENS || 24_000),
+      max_output_tokens: maxOutputTokens,
       text: {
         format: {
           type: "json_schema",
@@ -131,7 +139,7 @@ ${fileContext}`;
         },
       },
     }),
-    signal: AbortSignal.timeout(45_000),
+    signal: AbortSignal.timeout(requestTimeoutMs),
   });
 
   if (!response.ok) {
