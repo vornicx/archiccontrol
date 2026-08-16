@@ -12,16 +12,17 @@ Every task has an idempotency key. Worker leases and GitHub callbacks use random
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /api/agents/tasks/lease` | Atomically claim the highest-priority compatible worker task |
+| `POST /api/agents/tasks/lease` | Atomically claim the highest-priority compatible general worker task |
+| `POST /api/agents/repository-lease` | Let the exact managed GitHub Actions adapter on `main` claim one repository autofix through OIDC |
 | `POST /api/agents/tasks/:id/start` | Mark a lease or repository dispatch as running |
 | `POST /api/agents/tasks/:id/autofix-plan` | Plan one bounded autofix from repository-provided code context |
 | `POST /api/agents/tasks/:id/autofix-publish` | Create or recover the draft PR for an already-pushed bounded autofix branch |
 | `POST /api/agents/tasks/:id/complete` | Return structured evidence and succeed/retry/block |
 | `GET /api/projects/:id/journeys` | Read the validated project journey contract |
-| `GET /api/cron/dispatch` | Dispatch queued repository work through the GitHub App |
+| `GET /api/cron/dispatch` | Dispatch queued repository work through the GitHub App when push delivery is available |
 | `GET /api/cron/reconcile` | Recover expired work, retry executable dispatches and create terminal escalations |
 
-The leasing endpoint requires `Authorization: Bearer $AGENT_SECRET`. Task-specific start/plan/publish/complete callbacks accept the matching short-lived task token; supplying `AGENT_SECRET` remains supported for trusted workers where applicable. Cron endpoints use `CRON_SECRET`.
+The general leasing endpoint requires `Authorization: Bearer $AGENT_SECRET`. Repository pull leasing uses a short-lived GitHub Actions OIDC bearer with audience `archic-control`; Control verifies GitHub's RS256 signature, issuer, expiry, repository, `refs/heads/main`, the exact `.github/workflows/archic-control.yml` workflow and the allowed event before the queue is touched. Task-specific start/plan/publish/complete callbacks use the matching short-lived task token. Cron endpoints use `CRON_SECRET`.
 
 ## Repository adapter
 
@@ -30,9 +31,14 @@ Copy both files under `templates/project` into each managed project:
 - `.github/workflows/archic-control.yml`
 - `.archic/control-worker.mjs`
 
-No shared Control or OpenAI secret is required in the managed repository. Control sends its HTTPS callback URL and a one-task callback token inside the GitHub repository dispatch payload. The token expires with the task lease and is stored only as a hash in Control.
+No shared Control or OpenAI secret is required in the managed repository. There are two start paths:
 
-Before consuming an attempt, Control verifies that the repository adapter exists and that the requested task capability is exposed. Unsupported tasks remain queued with a diagnostic instead of burning the retry budget.
+1. **Push path:** Control sends `repository_dispatch` with its HTTPS callback URL and a one-task callback token.
+2. **Pull recovery:** the adapter runs on install/update and hourly, discovers the newest successful Archic Control `Production` deployment from GitHub, obtains a GitHub OIDC token and claims at most one eligible autofix from `/api/agents/repository-lease`.
+
+The pull path is deliberately a recovery mechanism, not a broad queue drain. It leases one task for 30 minutes, and Control refuses to consume the attempt if OpenAI or PR publication is not configured. The exact adapter workflow on the repository's `main` branch is the only OIDC identity allowed to lease repository work.
+
+Before consuming a push-dispatched attempt, Control also verifies that the repository adapter exists and that the requested task capability is exposed. Unsupported tasks remain queued with a diagnostic instead of burning the retry budget.
 
 The adapter executes existing `lint`, `typecheck`, `test`, `build` and `test:e2e` scripts when present. A project may expose these optional extension points:
 

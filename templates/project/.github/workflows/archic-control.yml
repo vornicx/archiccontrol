@@ -3,48 +3,129 @@ name: Archic Control Worker
 on:
   repository_dispatch:
     types: [archic_control_task]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/archic-control.yml'
+      - '.archic/control-worker.mjs'
 
 permissions:
+  id-token: write
   contents: write
   pull-requests: write
   deployments: write
 
 concurrency:
-  group: archic-control-${{ github.event.client_payload.taskId }}
+  group: archic-control-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
   execute:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      CONTROL_URL: ${{ github.event.client_payload.controlUrl }}
-      TASK_ID: ${{ github.event.client_payload.taskId }}
-      CALLBACK_TOKEN: ${{ github.event.client_payload.callbackToken }}
-      TASK_TYPE: ${{ github.event.client_payload.taskType }}
-      TASK_INPUT: ${{ toJSON(github.event.client_payload.input) }}
-      BASE_REF: ${{ github.event.repository.default_branch }}
     steps:
+      - name: Resolve one scoped task
+        id: resolve
+        shell: bash
+        env:
+          DISPATCH_CONTROL_URL: ${{ github.event.client_payload.controlUrl }}
+          DISPATCH_TASK_ID: ${{ github.event.client_payload.taskId }}
+          DISPATCH_CALLBACK_TOKEN: ${{ github.event.client_payload.callbackToken }}
+          DISPATCH_TASK_TYPE: ${{ github.event.client_payload.taskType }}
+          DISPATCH_TASK_INPUT: ${{ toJSON(github.event.client_payload.input) }}
+        run: |
+          set -euo pipefail
+
+          write_env() {
+            local key="$1" value="$2"
+            printf '%s=%s\n' "$key" "$value" >> "$GITHUB_ENV"
+          }
+
+          if [ "$GITHUB_EVENT_NAME" = "repository_dispatch" ]; then
+            write_env CONTROL_URL "$DISPATCH_CONTROL_URL"
+            write_env TASK_ID "$DISPATCH_TASK_ID"
+            write_env CALLBACK_TOKEN "$DISPATCH_CALLBACK_TOKEN"
+            write_env TASK_TYPE "$DISPATCH_TASK_TYPE"
+            write_env TASK_INPUT "$(printf '%s' "$DISPATCH_TASK_INPUT" | jq -c .)"
+            echo "has_task=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          deployments="$(curl --fail-with-body --silent --show-error --retry 3 --retry-all-errors \
+            -H 'Accept: application/vnd.github+json' \
+            'https://api.github.com/repos/vornicx/archiccontrol/deployments?environment=Production&per_page=8')"
+          CONTROL_URL=""
+          while IFS= read -r statuses_url; do
+            [ -n "$statuses_url" ] || continue
+            status_payload="$(curl --fail-with-body --silent --show-error --retry 3 --retry-all-errors \
+              -H 'Accept: application/vnd.github+json' "$statuses_url")"
+            candidate="$(printf '%s' "$status_payload" | jq -r '[.[] | select(.state=="success")][0].environment_url // empty')"
+            if [[ "$candidate" == https://* ]]; then
+              CONTROL_URL="${candidate%/}"
+              break
+            fi
+          done < <(printf '%s' "$deployments" | jq -r '.[].statuses_url')
+
+          if [ -z "$CONTROL_URL" ]; then
+            echo "No successful Archic Control production deployment could be resolved." >&2
+            exit 1
+          fi
+
+          oidc="$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=archic-control" | jq -r '.value')"
+          [ -n "$oidc" ] && [ "$oidc" != "null" ] || { echo "GitHub OIDC token was not issued." >&2; exit 1; }
+
+          lease="$(curl --fail-with-body --silent --show-error --retry 2 --retry-all-errors \
+            -X POST "$CONTROL_URL/api/agents/repository-lease" \
+            -H "Authorization: Bearer $oidc" \
+            -H 'Content-Type: application/json' \
+            --data '{"supportedTaskTypes":["autofix"]}')"
+
+          TASK_ID="$(printf '%s' "$lease" | jq -r '.task.id // empty')"
+          if [ -z "$TASK_ID" ]; then
+            echo "No eligible Archic Control task for this repository ($(printf '%s' "$lease" | jq -r '.reason // "queue_clear"'))."
+            echo "has_task=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          write_env CONTROL_URL "$(printf '%s' "$lease" | jq -r '.task.controlUrl')"
+          write_env TASK_ID "$TASK_ID"
+          write_env CALLBACK_TOKEN "$(printf '%s' "$lease" | jq -r '.task.callbackToken')"
+          write_env TASK_TYPE "$(printf '%s' "$lease" | jq -r '.task.taskType')"
+          write_env TASK_INPUT "$(printf '%s' "$lease" | jq -c '.task.payload')"
+          echo "has_task=true" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
+        if: steps.resolve.outputs.has_task == 'true'
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
+        if: steps.resolve.outputs.has_task == 'true'
         with:
           node-version: 22
           cache: npm
       - name: Mark task running
+        if: steps.resolve.outputs.has_task == 'true'
         run: |
           curl --fail-with-body --silent --show-error \
             -X POST "$CONTROL_URL/api/agents/tasks/$TASK_ID/start" \
             -H "Content-Type: application/json" \
             --data "$(jq -nc --arg token "$CALLBACK_TOKEN" --arg url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '{leaseToken:$token,externalUrl:$url}')"
-      - run: npm ci --no-audit --no-fund
+      - if: steps.resolve.outputs.has_task == 'true'
+        run: npm ci --no-audit --no-fund
       - name: Execute bounded task
         id: task
+        if: steps.resolve.outputs.has_task == 'true'
         continue-on-error: true
+        env:
+          BASE_REF: ${{ github.event.repository.default_branch }}
         run: node .archic/control-worker.mjs
       - name: Return evidence
-        if: always()
+        if: always() && steps.resolve.outputs.has_task == 'true'
         run: |
           outcome="${{ steps.task.outcome }}"
           if [ "$outcome" = "success" ]; then outcome="succeeded"; else outcome="failed"; fi
@@ -55,5 +136,5 @@ jobs:
             -H "Content-Type: application/json" \
             --data "$(jq -nc --arg token "$CALLBACK_TOKEN" --arg outcome "$outcome" --argjson result "$result" --arg error "${{ steps.task.outcome == 'success' && '' || 'Project worker failed; inspect the linked Actions run.' }}" '{leaseToken:$token,outcome:$outcome,result:$result,error:($error|select(length>0))}')"
       - name: Preserve failure status
-        if: steps.task.outcome != 'success'
+        if: steps.resolve.outputs.has_task == 'true' && steps.task.outcome != 'success'
         run: exit 1
