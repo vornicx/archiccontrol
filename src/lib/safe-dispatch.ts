@@ -1,5 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
+import { getControlPublicUrl } from "@/lib/control-url";
 import { db, hasDatabase } from "@/lib/db";
 import {
   dispatchRepositoryTask,
@@ -23,6 +24,7 @@ export async function dispatchReadyTasks(
 ): Promise<{ dispatched: number; failed: number; deferred: number }> {
   if (!hasDatabase()) throw new Error("DATABASE_URL is required");
   if (!isGithubAutomationConfigured()) throw new Error("GitHub automation is not configured");
+  const controlUrl = getControlPublicUrl();
 
   const sql = db();
   const rows = await sql.query(
@@ -92,6 +94,7 @@ export async function dispatchReadyTasks(
         attempt: number(row.attempt) + 1,
         input: row.payload,
         callbackToken,
+        controlUrl,
       });
       dispatched += 1;
     } catch (error) {
