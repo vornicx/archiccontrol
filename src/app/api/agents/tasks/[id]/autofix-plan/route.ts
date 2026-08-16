@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { isAutofixContextPath, normalizeAutofixPath } from "@/autofix/policy";
+import { containsSensitiveAutofixContent, isAutofixContextPath, normalizeAutofixPath } from "@/autofix/policy";
 import { planAutofix } from "@/autofix/planner";
 import { authorizeAutofixTask } from "@/autofix/task";
 
@@ -35,14 +35,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const seen = new Set<string>();
   const files = parsed.data.files.flatMap((file) => {
     const path = normalizeAutofixPath(file.path);
-    if (!path || seen.has(path) || !fileIndex.includes(path) || !isAutofixContextPath(path)) return [];
+    if (!path || seen.has(path) || !fileIndex.includes(path) || !isAutofixContextPath(path) || containsSensitiveAutofixContent(file.content)) return [];
     seen.add(path);
     return [{ path, content: file.content }];
   });
 
   const totalBytes = files.reduce((sum, file) => sum + Buffer.byteLength(file.content, "utf8"), 0);
   if (!files.length || totalBytes > 180_000) {
-    return NextResponse.json({ error: "Autofix context is empty or exceeds the 180 KB safety limit" }, { status: 413 });
+    return NextResponse.json({ error: "Autofix context is empty, credential-bearing, or exceeds the 180 KB safety limit" }, { status: 413 });
   }
 
   try {
