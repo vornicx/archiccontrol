@@ -1,5 +1,6 @@
 import "server-only";
 import { createSign } from "node:crypto";
+import { getControlPublicUrl } from "@/lib/control-url";
 
 const API = "https://api.github.com";
 
@@ -100,6 +101,9 @@ export async function repositoryTaskReadiness(
   if (missing.length) {
     return { ready: false, detail: `Repository adapter missing: ${missing.join(", ")}` };
   }
+  if (!packageFile) {
+    return { ready: false, detail: "Repository package.json is unavailable." };
+  }
 
   let scripts: Record<string, unknown> = {};
   try {
@@ -144,13 +148,17 @@ export async function dispatchRepositoryTask(
     attempt: number;
     input: unknown;
     callbackToken: string;
-    controlUrl: string;
+    controlUrl?: string;
   },
 ): Promise<void> {
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repositoryFullName)) throw new Error("Invalid repository name");
   const token = await repositoryToken(repositoryFullName);
+  const clientPayload = {
+    ...payload,
+    controlUrl: payload.controlUrl ?? getControlPublicUrl(),
+  };
   await github<void>(`/repos/${repositoryFullName}/dispatches`, token, {
     method: "POST",
-    body: JSON.stringify({ event_type: "archic_control_task", client_payload: payload }),
+    body: JSON.stringify({ event_type: "archic_control_task", client_payload: clientPayload }),
   });
 }
