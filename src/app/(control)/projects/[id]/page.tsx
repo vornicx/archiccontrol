@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 import { StatusPill } from "@/components/status-pill";
 import { Topbar } from "@/components/topbar";
-import { getProject } from "@/lib/repository";
+import { getLiveProject } from "@/lib/project-detail";
 import { normalizeSeverity } from "@/quality/gate";
 import { journeyManifests } from "@/automation/manifests";
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const data = await getProject(id);
+  const data = await getLiveProject(id);
   if (!data) notFound();
   const { project, gate } = data;
   const journeys = journeyManifests.get(project.id);
