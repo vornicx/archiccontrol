@@ -30,20 +30,51 @@ export async function getDashboard(): Promise<DashboardData> {
   const [projectRows, decisionRows, runRows, statsRows] = await Promise.all([
     sql.query(`
       select p.*,
-        count(f.id) filter (where f.status in ('open','fixing','blocked'))::int as open_findings,
-        count(f.id) filter (where f.status in ('open','fixing','blocked') and f.severity = 'critical')::int as critical_findings,
-        count(f.id) filter (where f.status in ('open','fixing','blocked') and f.source = 'benchmark' and (f.evidence->>'gate')::boolean is true)::int as active_gates
+        count(f.id) filter (
+          where f.status in ('open','fixing','blocked')
+            and (f.source <> 'benchmark' or f.run_id = latest_benchmark.id)
+        )::int as open_findings,
+        count(f.id) filter (
+          where f.status in ('open','fixing','blocked')
+            and f.severity = 'critical'
+            and (f.source <> 'benchmark' or f.run_id = latest_benchmark.id)
+        )::int as critical_findings,
+        count(f.id) filter (
+          where f.status in ('open','fixing','blocked')
+            and f.source = 'benchmark'
+            and f.run_id = latest_benchmark.id
+            and (f.evidence->>'gate')::boolean is true
+        )::int as active_gates
       from projects p
+      left join lateral (
+        select q.id
+        from quality_runs q
+        where q.project_id = p.id and q.source = 'archic-benchmark'
+        order by q.started_at desc
+        limit 1
+      ) latest_benchmark on true
       left join findings f on f.project_id = p.id
       where p.status = 'active'
-      group by p.id
+      group by p.id, latest_benchmark.id
       order by p.updated_at desc
     `),
     sql.query(`
       select d.*, p.name as project_name
       from decisions d
       left join projects p on p.id = d.project_id
+      left join agent_tasks t
+        on d.requested_by = 'agent-runtime'
+       and d.id = 'task:' || t.id::text || ':risk'
+      left join deployment_previews dp
+        on d.type = 'final_approval'
+       and d.id = 'preview:' || dp.id || ':approval'
       where d.status = 'pending'
+        and (d.project_id is null or p.status = 'active')
+        and (d.requested_by <> 'agent-runtime' or t.status = 'blocked')
+        and (
+          d.type <> 'final_approval'
+          or (dp.id is not null and dp.status = 'ready' and dp.quality_status = 'passed')
+        )
       order by d.blocking desc, d.created_at asc
     `),
     sql.query(`
@@ -212,6 +243,55 @@ export async function ingestBenchmark(report: BenchmarkReport): Promise<{ projec
       [proposedRunId, project.id, gate.status, project.rawScore ?? project.score, project.score, JSON.stringify(project), JSON.stringify(gate), report.generatedAt],
     );
     const runId = runRows[0]?.id ? String(runRows[0].id) : proposedRunId;
+    const currentFindingIds = project.issues.map((issue) => `${project.id}:benchmark:${issue.id}`);
+
+    const staleRows = await sql.query(
+      `select id
+       from findings
+       where project_id=$1
+         and source='benchmark'
+         and status in ('open','fixing','blocked')
+         and not (id = any($2::text[]))`,
+      [project.id, currentFindingIds],
+    );
+    const staleFindingIds = (staleRows as Row[]).map((row) => String(row.id));
+
+    if (staleFindingIds.length) {
+      await sql.query(
+        `update findings
+         set status='resolved'
+         where id = any($1::text[])`,
+        [staleFindingIds],
+      );
+      await sql.query(
+        `update agent_tasks
+         set status='cancelled',
+             completed_at=coalesce(completed_at,now()),
+             lease_owner=null,
+             lease_token_hash=null,
+             leased_until=null,
+             last_error='Superseded by a newer benchmark run.'
+         where finding_id = any($1::text[])
+           and status in ('queued','dispatched','leased','running')`,
+        [staleFindingIds],
+      );
+      await sql.query(
+        `update decisions d
+         set status='superseded',
+             resolved_by='control',
+             resolution_note='The latest benchmark no longer reports the associated finding.',
+             resolved_at=now()
+         where d.status='pending'
+           and d.requested_by='agent-runtime'
+           and exists (
+             select 1
+             from agent_tasks t
+             where d.id = 'task:' || t.id::text || ':risk'
+               and t.finding_id = any($1::text[])
+           )`,
+        [staleFindingIds],
+      );
+    }
 
     for (const issue of project.issues) {
       findings += 1;
