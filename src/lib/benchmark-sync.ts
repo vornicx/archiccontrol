@@ -1,7 +1,9 @@
 import "server-only";
 import { benchmarkReportSchema } from "@/lib/benchmark-schema";
 import { getBenchmarkHealth, type BenchmarkHealth } from "@/lib/benchmark-health";
+import { db, hasDatabase } from "@/lib/db";
 import { ingestBenchmark } from "@/lib/repository";
+import type { BenchmarkReport } from "@/lib/types";
 
 export interface BenchmarkSyncResult {
   health: BenchmarkHealth;
@@ -9,6 +11,39 @@ export interface BenchmarkSyncResult {
   ingested: boolean;
   source: string;
   error: string | null;
+}
+
+export async function ingestBenchmarkEvidence(report: BenchmarkReport): Promise<{ projects: number; findings: number }> {
+  const result = await ingestBenchmark(report);
+  if (!hasDatabase()) return result;
+
+  const projectIds = report.projects.map((project) => project.id);
+  if (projectIds.length) {
+    await db().query(
+      `update agent_tasks t
+       set status='cancelled',
+           completed_at=coalesce(t.completed_at,now()),
+           lease_owner=null,
+           lease_token_hash=null,
+           leased_until=null,
+           last_error='Superseded by fresher benchmark evidence.'
+       where t.project_id = any($1::text[])
+         and t.executor='github_dispatch'
+         and t.task_type='autofix'
+         and t.status in ('queued','dispatched','leased','running')
+         and not exists (
+           select 1
+           from quality_runs q
+           where q.id::text = t.payload->>'qualityRunId'
+             and q.project_id=t.project_id
+             and q.source='archic-benchmark'
+             and q.started_at=$2::timestamptz
+         )`,
+      [projectIds, report.generatedAt],
+    );
+  }
+
+  return result;
 }
 
 export async function syncBenchmarkFromSource(): Promise<BenchmarkSyncResult> {
@@ -26,15 +61,14 @@ export async function syncBenchmarkFromSource(): Promise<BenchmarkSyncResult> {
     const currentAt = before.lastBenchmarkAt ? new Date(before.lastBenchmarkAt).getTime() : 0;
     if (!Number.isFinite(incomingAt)) throw new Error("Benchmark source timestamp is invalid");
 
-    if (!before.lastBenchmarkAt || !Number.isFinite(currentAt) || incomingAt > currentAt) {
-      await ingestBenchmark(parsed.data);
-    }
+    const shouldIngest = !before.lastBenchmarkAt || !Number.isFinite(currentAt) || incomingAt > currentAt;
+    if (shouldIngest) await ingestBenchmarkEvidence(parsed.data);
 
     const health = await getBenchmarkHealth();
     return {
       health,
       attempted: true,
-      ingested: !before.lastBenchmarkAt || !Number.isFinite(currentAt) || incomingAt > currentAt,
+      ingested: shouldIngest,
       source,
       error: null,
     };
