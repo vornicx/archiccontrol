@@ -2,7 +2,9 @@ import { DecisionCard } from "@/components/decision-card";
 import { ProjectList } from "@/components/project-list";
 import { RunList } from "@/components/run-list";
 import { Topbar } from "@/components/topbar";
+import { getBenchmarkHealth } from "@/lib/benchmark-health";
 import { getDashboard } from "@/lib/repository";
+import styles from "./overview.module.css";
 
 function formatTimestamp(value: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -12,15 +14,39 @@ function formatTimestamp(value: string): string {
   }).format(new Date(value));
 }
 
+function formatAge(hours: number | null): string {
+  if (hours === null) return "No benchmark ingested";
+  if (hours < 1) return `${Math.max(1, Math.round(hours * 60))}m old`;
+  return `${Math.round(hours)}h old`;
+}
+
 export default async function OverviewPage() {
-  const data = await getDashboard();
+  const [data, benchmarkHealth] = await Promise.all([getDashboard(), getBenchmarkHealth()]);
+  const actionableDecisions = benchmarkHealth.fresh
+    ? data.needsVadim
+    : data.needsVadim.filter((decision) => decision.type !== "final_approval");
+
   return (
     <>
       <Topbar title="Operating overview" meta={formatTimestamp(data.generatedAt)} />
+
+      {!benchmarkHealth.fresh ? (
+        <section className={styles.freshnessAlert} aria-label="Benchmark data freshness warning">
+          <div>
+            <strong>Benchmark data is stale</strong>
+            <p>
+              Quality scores may not reflect the latest portfolio run. Final approvals remain blocked until fresh evidence is ingested.
+              {benchmarkHealth.lastBenchmarkAt ? ` Last successful ingestion: ${formatTimestamp(benchmarkHealth.lastBenchmarkAt)}.` : " No successful ingestion is recorded."}
+            </p>
+          </div>
+          <div className={styles.freshnessMeta}>{formatAge(benchmarkHealth.ageHours)}</div>
+        </section>
+      ) : null}
+
       <section className="metric-strip" aria-label="Portfolio metrics">
         <div className="metric metric-primary">
           <span className="metric-label">Needs Vadim</span>
-          <div className="metric-value">{data.needsVadim.length}<small>decision{data.needsVadim.length === 1 ? "" : "s"}</small></div>
+          <div className="metric-value">{actionableDecisions.length}<small>decision{actionableDecisions.length === 1 ? "" : "s"}</small></div>
         </div>
         <div className="metric">
           <span className="metric-label">Portfolio quality</span>
@@ -46,8 +72,8 @@ export default async function OverviewPage() {
               </div>
               <span className="section-kicker">Everything else stays with Control</span>
             </div>
-            {data.needsVadim.length
-              ? data.needsVadim.map((decision) => <DecisionCard decision={decision} key={decision.id} />)
+            {actionableDecisions.length
+              ? actionableDecisions.map((decision) => <DecisionCard decision={decision} key={decision.id} />)
               : <div className="empty-decision"><div><strong>No decisions waiting.</strong>Control is resolving the operational queue autonomously.</div></div>}
           </section>
 
@@ -76,4 +102,3 @@ export default async function OverviewPage() {
     </>
   );
 }
-
