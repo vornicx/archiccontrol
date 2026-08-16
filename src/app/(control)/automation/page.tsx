@@ -6,7 +6,14 @@ import { getAutomationData } from "@/lib/automation-repository";
 
 export default async function AutomationPage() {
   const [data, health] = await Promise.all([getAutomationData(), getAutomationHealth()]);
-  const readiness = data.deploymentReadiness.filter((item) => item.label !== "Owner authentication");
+  const readiness = [
+    ...data.deploymentReadiness.filter((item) => item.label !== "Owner authentication"),
+    {
+      label: "Retry policy",
+      ready: true,
+      detail: "Repository capability is checked before an attempt is consumed. Retryable work backs off automatically; only terminal blocked work crosses the human boundary.",
+    },
+  ];
 
   return (
     <>
