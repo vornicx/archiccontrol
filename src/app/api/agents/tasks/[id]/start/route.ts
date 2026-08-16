@@ -7,10 +7,16 @@ export const runtime = "nodejs";
 const bodySchema = z.object({ leaseToken: z.string().min(32), externalUrl: z.string().url().optional() });
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
-  if (!verifyBearer(request, process.env.AGENT_SECRET)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const machineAuthorized = verifyBearer(request, process.env.AGENT_SECRET);
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid start request" }, { status: 400 });
   const { id } = await context.params;
   const started = await startTask(id, parsed.data.leaseToken, parsed.data.externalUrl);
-  return NextResponse.json({ ok: started }, { status: started ? 200 : 409 });
+  if (!started) {
+    return NextResponse.json(
+      { error: machineAuthorized ? "Task lease is invalid or expired" : "Unauthorized" },
+      { status: machineAuthorized ? 409 : 401 },
+    );
+  }
+  return NextResponse.json({ ok: true });
 }
