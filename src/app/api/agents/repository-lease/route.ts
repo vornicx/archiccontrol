@@ -91,7 +91,7 @@ export async function POST(request: Request) {
   const row = rows[0] as Record<string, unknown>;
   await sql.query(
     `insert into audit_log(actor,action,entity_type,entity_id,metadata)
-     values($1,'repository_task_lease','agent_task',$2,jsonb_build_object('repository',$3,'event',$4,'runId',$5))`,
+     values($1,'repository_task_lease','agent_task',$2,jsonb_build_object('repository',$3::text,'event',$4::text,'runId',$5::text))`,
     [identity.actor ? `github:${identity.actor}` : "github-actions", row.id, identity.repository, identity.eventName, identity.runId],
   );
 
