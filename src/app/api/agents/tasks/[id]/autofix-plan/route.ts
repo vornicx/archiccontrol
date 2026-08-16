@@ -5,7 +5,7 @@ import { planAutofix } from "@/autofix/planner";
 import { authorizeAutofixTask } from "@/autofix/task";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const bodySchema = z.object({
   leaseToken: z.string().min(32).max(256),
