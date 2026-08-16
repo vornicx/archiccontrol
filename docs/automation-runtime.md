@@ -14,12 +14,14 @@ Every task has an idempotency key. Worker leases and GitHub callbacks use random
 |---|---|
 | `POST /api/agents/tasks/lease` | Atomically claim the highest-priority compatible worker task |
 | `POST /api/agents/tasks/:id/start` | Mark a lease or repository dispatch as running |
+| `POST /api/agents/tasks/:id/autofix-plan` | Plan one bounded autofix from repository-provided code context |
+| `POST /api/agents/tasks/:id/autofix-publish` | Create or recover the draft PR for an already-pushed bounded autofix branch |
 | `POST /api/agents/tasks/:id/complete` | Return structured evidence and succeed/retry/block |
 | `GET /api/projects/:id/journeys` | Read the validated project journey contract |
 | `GET /api/cron/dispatch` | Dispatch queued repository work through the GitHub App |
 | `GET /api/cron/reconcile` | Recover expired work, retry executable dispatches and create terminal escalations |
 
-The leasing endpoint requires `Authorization: Bearer $AGENT_SECRET`. Task-specific start/complete callbacks accept the matching short-lived task token; supplying `AGENT_SECRET` remains supported for trusted workers and diagnostics. Cron endpoints use `CRON_SECRET`.
+The leasing endpoint requires `Authorization: Bearer $AGENT_SECRET`. Task-specific start/plan/publish/complete callbacks accept the matching short-lived task token; supplying `AGENT_SECRET` remains supported for trusted workers where applicable. Cron endpoints use `CRON_SECRET`.
 
 ## Repository adapter
 
@@ -28,18 +30,35 @@ Copy both files under `templates/project` into each managed project:
 - `.github/workflows/archic-control.yml`
 - `.archic/control-worker.mjs`
 
-No shared Control secret is required in the managed repository. Control sends its HTTPS callback URL and a one-task callback token inside the signed GitHub repository dispatch payload. The token expires with the task lease and is stored only as a hash in Control.
+No shared Control or OpenAI secret is required in the managed repository. Control sends its HTTPS callback URL and a one-task callback token inside the GitHub repository dispatch payload. The token expires with the task lease and is stored only as a hash in Control.
 
 Before consuming an attempt, Control verifies that the repository adapter exists and that the requested task capability is exposed. Unsupported tasks remain queued with a diagnostic instead of burning the retry budget.
 
 The adapter executes existing `lint`, `typecheck`, `test`, `build` and `test:e2e` scripts when present. A project may expose these optional extension points:
 
-- `archic:autofix` — make a bounded fix and leave an auditable diff;
-- `archic:journeys` — execute its checked-in Playwright journey manifest;
+- `archic:journeys` — execute its checked-in project journey manifest;
 - `archic:preview` — promote the exact approved preview without rebuilding it;
 - `archic:<taskType>` — custom specialist work.
 
-`autofix`, `playwright`, `preview` and custom task types are never dispatched unless their required npm capability exists. Missing adapters or task extensions are operational readiness gaps, not failed attempts.
+`autofix` is built into the generic Archic worker and does not require `archic:autofix` or an OpenAI key in the project repository. `playwright`, `preview` and custom task types still require their corresponding repository capability. Missing adapters or task extensions are operational readiness gaps, not failed attempts.
+
+## Bounded AI autofix
+
+One benchmark finding produces at most one controlled autofix branch: `archic/autofix-<task>`. The worker gathers a bounded repository index and a small set of likely source files, then sends those file contents to Control. Control alone calls the configured OpenAI model and returns a strict JSON repair plan.
+
+The boundary is intentionally narrow:
+
+- maximum four changed files per finding;
+- maximum 80 KB per file and 180 KB of replacement content;
+- no `.env`, credentials, private keys, CI, `.github`, `.archic`, database migrations, deployment configuration, lockfiles or dependency edits;
+- literal credential patterns are rejected from model context and generated output;
+- an existing file can only be changed after its full content was supplied to the planner;
+- the planner gets at most two context rounds and six additional-file requests;
+- the worker revalidates paths, stages only the approved file set and aborts if QA creates unexpected tracked changes;
+- all available repository QA scripts run before the branch is pushed;
+- Control creates a draft PR centrally; the worker never writes to the default branch.
+
+A successful autofix task means only that a bounded, QA-tested draft PR exists. The linked finding remains `fixing`; only a later benchmark run that no longer reports the defect may resolve it.
 
 ## Promotion contract
 
