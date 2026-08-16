@@ -137,7 +137,15 @@ export async function repositoryTaskReadiness(
 
 export async function dispatchRepositoryTask(
   repositoryFullName: string,
-  payload: { taskId: string; taskType: string; projectId: string | null; attempt: number; input: unknown; callbackToken: string },
+  payload: {
+    taskId: string;
+    taskType: string;
+    projectId: string | null;
+    attempt: number;
+    input: unknown;
+    callbackToken: string;
+    controlUrl: string;
+  },
 ): Promise<void> {
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repositoryFullName)) throw new Error("Invalid repository name");
   const token = await repositoryToken(repositoryFullName);
