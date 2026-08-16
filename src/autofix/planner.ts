@@ -21,6 +21,16 @@ function outputText(payload: OpenAIResponse): string {
   throw new Error("OpenAI autofix response did not contain structured output text");
 }
 
+function responsesEndpoint(): string {
+  const configured = process.env.AUTOFIX_API_BASE_URL
+    ?? process.env.ARCHIC_OPENAI_BASE_URL
+    ?? process.env.OPENAI_BASE_URL
+    ?? "https://api.openai.com";
+  const base = configured.trim().replace(/\/+$/, "");
+  if (!base) return "https://api.openai.com/v1/responses";
+  return base.endsWith("/v1") ? `${base}/responses` : `${base}/v1/responses`;
+}
+
 function planSchema() {
   return {
     type: "object",
@@ -102,7 +112,7 @@ ${input.fileIndex.join("\n")}
 PROVIDED FILE CONTENTS
 ${fileContext}`;
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const response = await fetch(responsesEndpoint(), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
