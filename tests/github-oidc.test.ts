@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { validateGitHubOidcClaims } from "../src/lib/github-oidc";
+import { validateGitHubOidcClaims } from "../src/lib/github-oidc-claims";
 
 const now = 1_800_000_000;
 const base = {
