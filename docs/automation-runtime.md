@@ -6,7 +6,7 @@
 
 Failures return to `queued` with backoff while `attempt < max_attempts`. An expired lease is reclaimed by the reconciler. Only the terminal `blocked` state creates a `risk_acceptance` decision, so routine breakage never enters **Needs Vadim**.
 
-Every task has an idempotency key. Worker leases and GitHub callbacks use random, short-lived tokens stored only as SHA-256 hashes. The shared machine bearer is checked before the task token.
+Every task has an idempotency key. Worker leases and GitHub callbacks use random, short-lived tokens stored only as SHA-256 hashes. Repository-dispatched tasks use that scoped callback token as their capability; general leasing workers still authenticate with the shared machine bearer before they receive a task.
 
 ## Worker API
 
@@ -17,16 +17,20 @@ Every task has an idempotency key. Worker leases and GitHub callbacks use random
 | `POST /api/agents/tasks/:id/complete` | Return structured evidence and succeed/retry/block |
 | `GET /api/projects/:id/journeys` | Read the validated project journey contract |
 | `GET /api/cron/dispatch` | Dispatch queued repository work through the GitHub App |
-| `GET /api/cron/reconcile` | Recover expired work and create terminal escalations |
+| `GET /api/cron/reconcile` | Recover expired work, retry executable dispatches and create terminal escalations |
 
-Machine endpoints require `Authorization: Bearer $AGENT_SECRET`; cron endpoints use `CRON_SECRET`.
+The leasing endpoint requires `Authorization: Bearer $AGENT_SECRET`. Task-specific start/complete callbacks accept the matching short-lived task token; supplying `AGENT_SECRET` remains supported for trusted workers and diagnostics. Cron endpoints use `CRON_SECRET`.
 
 ## Repository adapter
 
-Copy both files under `templates/project` into each managed project, then configure repository Actions secrets:
+Copy both files under `templates/project` into each managed project:
 
-- `ARCHIC_CONTROL_URL=https://control.archic.es`
-- `ARCHIC_AGENT_SECRET=<same value as AGENT_SECRET>`
+- `.github/workflows/archic-control.yml`
+- `.archic/control-worker.mjs`
+
+No shared Control secret is required in the managed repository. Control sends its HTTPS callback URL and a one-task callback token inside the signed GitHub repository dispatch payload. The token expires with the task lease and is stored only as a hash in Control.
+
+Before consuming an attempt, Control verifies that the repository adapter exists and that the requested task capability is exposed. Unsupported tasks remain queued with a diagnostic instead of burning the retry budget.
 
 The adapter executes existing `lint`, `typecheck`, `test`, `build` and `test:e2e` scripts when present. A project may expose these optional extension points:
 
@@ -35,7 +39,7 @@ The adapter executes existing `lint`, `typecheck`, `test`, `build` and `test:e2e
 - `archic:preview` — promote the exact approved preview without rebuilding it;
 - `archic:<taskType>` — custom specialist work.
 
-Missing required adapters fail visibly, retry automatically and only escalate after the configured budget.
+`autofix`, `playwright`, `preview` and custom task types are never dispatched unless their required npm capability exists. Missing adapters or task extensions are operational readiness gaps, not failed attempts.
 
 ## Promotion contract
 
@@ -43,6 +47,7 @@ A ready preview is not approvable merely because deployment succeeded. It must a
 
 1. Quality Gate status `passed`;
 2. a completed smoke task;
-3. critical desktop and mobile project journeys passed.
+3. critical desktop and mobile project journeys passed;
+4. fresh benchmark evidence inside the Control freshness window.
 
 Only then does Control create one `final_approval` decision tied to that exact deployment ID. Approval promotes the tested artifact; it does not rebuild it.

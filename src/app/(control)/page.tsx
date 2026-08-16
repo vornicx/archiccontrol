@@ -2,6 +2,7 @@ import { DecisionCard } from "@/components/decision-card";
 import { ProjectList } from "@/components/project-list";
 import { RunList } from "@/components/run-list";
 import { Topbar } from "@/components/topbar";
+import { getAutomationHealth } from "@/lib/automation-health";
 import { getBenchmarkHealth } from "@/lib/benchmark-health";
 import { getDashboard } from "@/lib/repository";
 import styles from "./overview.module.css";
@@ -21,7 +22,11 @@ function formatAge(hours: number | null): string {
 }
 
 export default async function OverviewPage() {
-  const [data, benchmarkHealth] = await Promise.all([getDashboard(), getBenchmarkHealth()]);
+  const [data, benchmarkHealth, automationHealth] = await Promise.all([
+    getDashboard(),
+    getBenchmarkHealth(),
+    getAutomationHealth(),
+  ]);
   const actionableDecisions = benchmarkHealth.fresh
     ? data.needsVadim
     : data.needsVadim.filter((decision) => decision.type !== "final_approval");
@@ -56,9 +61,9 @@ export default async function OverviewPage() {
           <span className="metric-label">Active gates</span>
           <div className="metric-value">{data.portfolio.activeGates}<small>blocking</small></div>
         </div>
-        <div className="metric">
+        <div className="metric" title={automationHealth.detail}>
           <span className="metric-label">Automation health</span>
-          <div className="metric-value">{data.portfolio.automationHealth}<small>%</small></div>
+          <div className="metric-value">{automationHealth.score}<small>% · {automationHealth.state}</small></div>
         </div>
       </section>
 

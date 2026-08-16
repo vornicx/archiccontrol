@@ -18,8 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      CONTROL_URL: ${{ secrets.ARCHIC_CONTROL_URL }}
-      AGENT_SECRET: ${{ secrets.ARCHIC_AGENT_SECRET }}
+      CONTROL_URL: ${{ github.event.client_payload.controlUrl }}
       TASK_ID: ${{ github.event.client_payload.taskId }}
       CALLBACK_TOKEN: ${{ github.event.client_payload.callbackToken }}
       TASK_TYPE: ${{ github.event.client_payload.taskType }}
@@ -34,7 +33,6 @@ jobs:
         run: |
           curl --fail-with-body --silent --show-error \
             -X POST "$CONTROL_URL/api/agents/tasks/$TASK_ID/start" \
-            -H "Authorization: Bearer $AGENT_SECRET" \
             -H "Content-Type: application/json" \
             --data "$(jq -nc --arg token "$CALLBACK_TOKEN" --arg url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '{leaseToken:$token,externalUrl:$url}')"
       - run: npm ci --no-audit --no-fund
@@ -51,10 +49,8 @@ jobs:
           if [ -f .archic/task-result.json ]; then result="$(jq -c . .archic/task-result.json)"; fi
           curl --fail-with-body --silent --show-error \
             -X POST "$CONTROL_URL/api/agents/tasks/$TASK_ID/complete" \
-            -H "Authorization: Bearer $AGENT_SECRET" \
             -H "Content-Type: application/json" \
             --data "$(jq -nc --arg token "$CALLBACK_TOKEN" --arg outcome "$outcome" --argjson result "$result" --arg error "${{ steps.task.outcome == 'success' && '' || 'Project worker failed; inspect the linked Actions run.' }}" '{leaseToken:$token,outcome:$outcome,result:$result,error:($error|select(length>0))}')"
       - name: Preserve failure status
         if: steps.task.outcome != 'success'
         run: exit 1
-

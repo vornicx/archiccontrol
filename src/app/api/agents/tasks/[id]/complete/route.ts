@@ -12,7 +12,7 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
-  if (!verifyBearer(request, process.env.AGENT_SECRET)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const machineAuthorized = verifyBearer(request, process.env.AGENT_SECRET);
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid completion request", issues: parsed.error.issues }, { status: 400 });
   const { id } = await context.params;
@@ -20,7 +20,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const status = await completeTask({ id, ...parsed.data });
     return NextResponse.json({ ok: true, status });
   } catch (error) {
-    if (error instanceof Error && error.message.includes("lease")) return NextResponse.json({ error: error.message }, { status: 409 });
+    if (error instanceof Error && error.message.includes("lease")) {
+      return NextResponse.json(
+        { error: machineAuthorized ? error.message : "Unauthorized" },
+        { status: machineAuthorized ? 409 : 401 },
+      );
+    }
     throw error;
   }
 }

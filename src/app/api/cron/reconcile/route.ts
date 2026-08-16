@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, hasDatabase } from "@/lib/db";
 import { verifyBearer } from "@/lib/security";
+import { dispatchReadyTasks } from "@/lib/safe-dispatch";
 import { publishVerifiedProspect } from "@/prospecting/publish-verified";
 
 export const runtime = "nodejs";
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
   const prospectRows = await sql.query(`select status from prospects where run_date=$1::date limit 1`, [madridDate]);
   let prospecting:
     | Awaited<ReturnType<typeof publishVerifiedProspect>>
-    | { status: "not_configured"; runDate: string; reason: string };
+    | { status: "not_configured" | "blocked"; runDate: string; reason: string };
 
   if (prospectRows.length === 0) {
     prospecting = {
@@ -85,11 +86,25 @@ export async function POST(request: Request) {
     }
   }
 
+  let dispatch:
+    | Awaited<ReturnType<typeof dispatchReadyTasks>>
+    | { status: "not_configured" | "failed"; reason: string };
+  try {
+    dispatch = await dispatchReadyTasks(25);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    dispatch = {
+      status: reason.includes("not configured") ? "not_configured" : "failed",
+      reason,
+    };
+  }
+
   return NextResponse.json({
     ok: true,
     recovered: expiredRows.filter((row) => row.status === "queued").length,
     blocked: expiredRows.filter((row) => row.status === "blocked").length,
     escalated: findingRows.length + taskRows.length,
+    dispatch,
     prospecting,
   });
 }
