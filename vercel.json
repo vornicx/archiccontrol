@@ -7,7 +7,6 @@
     }
   },
   "framework": "nextjs",
-  "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in agent/*) exit 0 ;; *) exit 1 ;; esac",
   "env": {
     "CONTROL_PUBLIC_URL": "https://control.archic.es",
     "BENCHMARK_URL": "https://archicbenchmark.vercel.app/api/latest.json",
