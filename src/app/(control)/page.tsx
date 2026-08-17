@@ -7,6 +7,13 @@ import { ensureFreshBenchmark } from "@/lib/benchmark-sync";
 import { getDashboard } from "@/lib/repository";
 import styles from "./overview.module.css";
 
+const healthLabels = {
+  healthy: "correcta",
+  working: "trabajando",
+  degraded: "degradada",
+  blocked: "bloqueada",
+} as const;
+
 function formatTimestamp(value: string): string {
   return new Intl.DateTimeFormat("es-ES", {
     timeZone: "Europe/Madrid",
@@ -65,7 +72,7 @@ export default async function OverviewPage() {
         </div>
         <div className="metric" title={automationHealth.detail}>
           <span className="metric-label">Salud de automatización</span>
-          <div className="metric-value">{automationHealth.score}<small>% · {automationHealth.state}</small></div>
+          <div className="metric-value">{automationHealth.score}<small>% · {healthLabels[automationHealth.state]}</small></div>
         </div>
       </section>
 
