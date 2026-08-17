@@ -9,7 +9,7 @@ export default async function SalesPipelinePage() {
   const { leads } = await getSalesData();
   return (
     <>
-      <header className="sales-header"><div><p className="sales-eyebrow">Commercial system</p><h1 className="sales-title">Pipeline.</h1><p className="sales-subtitle">Cada empresa tiene un estado, un responsable y una única siguiente acción.</p></div></header>
+      <header className="sales-header"><div><p className="sales-eyebrow">Sistema comercial</p><h1 className="sales-title">Pipeline.</h1><p className="sales-subtitle">Cada empresa tiene un estado, un responsable y una única siguiente acción.</p></div></header>
       <div className="sales-pipeline"><div className="sales-pipeline-grid">
         {columns.map((stage) => {
           const stageLeads = leads.filter((lead) => lead.stage === stage);
