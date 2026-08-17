@@ -6,15 +6,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Link href="/" className="wordmark" aria-label="Archic Control — overview">
+        <Link href="/" className="wordmark" aria-label="Archic Control — resumen">
           <span className="wordmark-mark"><ArchicMark /></span>
           <span>Archic <small>Control</small></span>
         </Link>
         <Navigation />
         <div className="sidebar-foot">
           <div className="system-state">
-            <strong><span className="live-dot" />Control plane online</strong>
-            <span>Quality Standard v1.0</span>
+            <strong><span className="live-dot" />Plano de control activo</strong>
+            <span>Estándar de calidad v1.0</span>
           </div>
         </div>
       </aside>
