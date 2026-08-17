@@ -18,7 +18,7 @@ export default async function DeploymentsPage() {
   const ready = data.deploymentReadiness.every((check) => check.ready);
   return (
     <>
-      <Topbar eyebrow="Pipeline de promoción" title="Previews y despliegues" meta={ready ? "Sistema configurado" : "Entorno incompleto"} />
+      <Topbar eyebrow="Flujo de promoción" title="Vistas previas y despliegues" meta={ready ? "Sistema configurado" : "Entorno incompleto"} />
       <section className="readiness-panel" aria-labelledby="readiness-title">
         <div><p className="eyebrow">Contrato de despliegue</p><h2 className="section-title" id="readiness-title">Preparación para producción</h2></div>
         <div className="readiness-grid">
