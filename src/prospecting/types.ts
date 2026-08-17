@@ -14,6 +14,21 @@ export interface ProspectContact {
   email: string | null;
   phone: string | null;
   whatsapp: string | null;
+  bestMethod?: string | null;
+}
+
+export interface ProspectContactPerson {
+  name: string;
+  role: string | null;
+  sourceUrl?: string | null;
+  verified: boolean;
+}
+
+export interface ProspectEstimatedValue {
+  currency: "EUR";
+  amount: number;
+  rationale: string;
+  closeProbability?: number | null;
 }
 
 export interface ProspectPrice {
@@ -46,6 +61,9 @@ export interface ResearchCandidate {
   score: number;
   services: string[];
   contact: ProspectContact;
+  contactPerson?: ProspectContactPerson;
+  bestContactMethod?: string | null;
+  estimatedValue?: ProspectEstimatedValue;
   price: ProspectPrice;
   outreachMessage: string;
   copy: ProspectCopy;
