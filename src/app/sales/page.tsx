@@ -14,7 +14,7 @@ export default async function SalesTodayPage() {
   return (
     <>
       <header className="sales-header">
-        <div><p className="sales-eyebrow">Antero · Monday operating view</p><h1 className="sales-title">Hoy.</h1><p className="sales-subtitle">Una pantalla para saber a quién contactar, qué pasó la última vez y cuál es el siguiente movimiento. Sin ruido.</p></div>
+        <div><p className="sales-eyebrow">Antero · Commercial operating view</p><h1 className="sales-title">Hoy.</h1><p className="sales-subtitle">Una pantalla para saber a quién contactar, qué pasó la última vez y cuál es el siguiente movimiento. Sin ruido.</p></div>
         <span className="sales-live"><strong>{active.length}</strong> oportunidades activas</span>
       </header>
       {!persistenceConfigured ? <div className="sales-alert"><strong>Modo preview.</strong> La interfaz ya está montada con vuestro pipeline actual; cuando apliquemos la migración, las llamadas y follow-ups quedarán persistidos.</div> : null}
