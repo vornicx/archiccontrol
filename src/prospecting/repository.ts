@@ -9,6 +9,15 @@ function asIso(value: unknown): string {
   return String(value ?? new Date(0).toISOString());
 }
 
+function asDateKey(value: unknown): string {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  const text = String(value ?? "");
+  const isoPrefix = text.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (isoPrefix) return isoPrefix;
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? text.slice(0, 10) : parsed.toISOString().slice(0, 10);
+}
+
 function asJson<T>(value: unknown, fallback: T): T {
   if (value == null) return fallback;
   if (typeof value === "string") {
@@ -20,7 +29,7 @@ function asJson<T>(value: unknown, fallback: T): T {
 function mapProspect(row: Row): ProspectRecord {
   return {
     id: String(row.id),
-    runDate: String(row.run_date),
+    runDate: asDateKey(row.run_date),
     name: String(row.name),
     city: row.city == null ? null : String(row.city),
     category: row.category == null ? null : String(row.category),
@@ -42,11 +51,17 @@ function mapProspect(row: Row): ProspectRecord {
 }
 
 export async function getProspectingData(): Promise<ProspectingData> {
-  if (!hasDatabase()) return { today: null, recent: [], persistenceConfigured: false };
-  const rows = await db().query(`select * from prospects order by run_date desc limit 20`) as Row[];
+  if (!hasDatabase()) return { today: null, todayProspects: [], recent: [], persistenceConfigured: false };
+  const rows = await db().query(`
+    select *
+    from prospects
+    order by run_date desc, score desc nulls last, created_at asc
+    limit 60
+  `) as Row[];
   const recent = rows.map(mapProspect);
   const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  return { today: recent.find((item) => item.runDate.slice(0, 10) === todayKey) ?? null, recent, persistenceConfigured: true };
+  const todayProspects = recent.filter((item) => item.runDate === todayKey);
+  return { today: todayProspects[0] ?? null, todayProspects, recent, persistenceConfigured: true };
 }
 
 export async function hasProspectingRun(runDate: string): Promise<boolean> {
@@ -87,8 +102,8 @@ export async function saveProspect(input: {
       $1,$2::date,$3,$4,$5,$6,$7,$8,$9,$10,
       $11::jsonb,$12::jsonb,$13::jsonb,$14::jsonb,$15,$16,$17
     )
-    on conflict(run_date) do update set
-      id=excluded.id,
+    on conflict(id) do update set
+      run_date=excluded.run_date,
       name=excluded.name,
       city=excluded.city,
       category=excluded.category,
