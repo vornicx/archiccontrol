@@ -66,9 +66,9 @@ export interface ProspectRecord {
   score: number | null;
   verificationConfidence: "unverified" | "medium" | "high";
   evidence: ProspectEvidence[];
-  research: Partial<ResearchCandidate>;
-  price: Partial<ProspectPrice>;
-  outreach: { message?: string };
+  research: Partial<ResearchCandidate> & Record<string, unknown>;
+  price: Partial<ProspectPrice> & Record<string, unknown>;
+  outreach: { message?: string } & Record<string, unknown>;
   repositoryFullName: string | null;
   deploymentUrl: string | null;
   error: string | null;
@@ -77,7 +77,10 @@ export interface ProspectRecord {
 }
 
 export interface ProspectingData {
+  /** Highest-scoring prospect for compatibility with existing consumers. */
   today: ProspectRecord | null;
+  /** Every independently persisted prospect for the current Madrid date. */
+  todayProspects: ProspectRecord[];
   recent: ProspectRecord[];
   persistenceConfigured: boolean;
 }
