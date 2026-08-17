@@ -71,6 +71,18 @@ export async function getSalesData(): Promise<SalesData> {
   return { leads: rows, persistenceConfigured: true };
 }
 
+export async function getSalesClock(): Promise<string> {
+  if (hasDatabase()) {
+    try {
+      const rows = await db().query("select now() as current_time") as Row[];
+      if (rows[0]?.current_time) return asIso(rows[0].current_time);
+    } catch {
+      // Preview mode can still render even if persistence is temporarily unavailable.
+    }
+  }
+  return new Date().toISOString();
+}
+
 export async function getSalesLead(id: string): Promise<{ lead: SalesLead | null; persistenceConfigured: boolean }> {
   const rows = await databaseLeads();
   if (rows == null) return { lead: seedSalesLeads.find((lead) => lead.id === id) ?? null, persistenceConfigured: false };
