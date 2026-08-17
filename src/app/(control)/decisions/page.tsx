@@ -11,11 +11,11 @@ export default async function DecisionsPage() {
 
   return (
     <>
-      <Topbar eyebrow="Human boundary" title="Decision queue" meta={`${actionableDecisions.length} pending`} />
+      <Topbar eyebrow="Límite humano" title="Cola de decisiones" meta={`${actionableDecisions.length} pendientes`} />
       <section className="section">
         {actionableDecisions.length
           ? actionableDecisions.map((decision) => <DecisionCard decision={decision} key={decision.id} />)
-          : <div className="empty-decision"><div><strong>Queue clear.</strong>No decision currently requires Vadim.</div></div>}
+          : <div className="empty-decision"><div><strong>Cola despejada.</strong> Ninguna decisión necesita ahora mismo a Vadim.</div></div>}
       </section>
     </>
   );
