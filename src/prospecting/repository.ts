@@ -9,6 +9,15 @@ function asIso(value: unknown): string {
   return String(value ?? new Date(0).toISOString());
 }
 
+function asDateKey(value: unknown): string {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  const text = String(value ?? "");
+  const isoPrefix = text.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (isoPrefix) return isoPrefix;
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? text.slice(0, 10) : parsed.toISOString().slice(0, 10);
+}
+
 function asJson<T>(value: unknown, fallback: T): T {
   if (value == null) return fallback;
   if (typeof value === "string") {
@@ -20,7 +29,7 @@ function asJson<T>(value: unknown, fallback: T): T {
 function mapProspect(row: Row): ProspectRecord {
   return {
     id: String(row.id),
-    runDate: String(row.run_date),
+    runDate: asDateKey(row.run_date),
     name: String(row.name),
     city: row.city == null ? null : String(row.city),
     category: row.category == null ? null : String(row.category),
@@ -51,7 +60,7 @@ export async function getProspectingData(): Promise<ProspectingData> {
   `) as Row[];
   const recent = rows.map(mapProspect);
   const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const todayProspects = recent.filter((item) => item.runDate.slice(0, 10) === todayKey);
+  const todayProspects = recent.filter((item) => item.runDate === todayKey);
   return { today: todayProspects[0] ?? null, todayProspects, recent, persistenceConfigured: true };
 }
 
