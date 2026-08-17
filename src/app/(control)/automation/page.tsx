@@ -4,6 +4,13 @@ import { Topbar } from "@/components/topbar";
 import { getAutomationHealth } from "@/lib/automation-health";
 import { getAutomationData } from "@/lib/automation-repository";
 
+const healthLabels = {
+  healthy: "correcta",
+  working: "trabajando",
+  degraded: "degradada",
+  blocked: "bloqueada",
+} as const;
+
 const readinessCopy: Record<string, { label: string; detail: string }> = {
   Postgres: { label: "Postgres", detail: "Estado duradero del plano de control" },
   "Owner authentication": { label: "Autenticación del propietario", detail: "Sesión del propietario firmada" },
@@ -27,7 +34,7 @@ export default async function AutomationPage() {
 
   return (
     <>
-      <Topbar eyebrow="Ejecución autónoma" title="Cola de agentes" meta={`${health.score}% · ${health.state}`} />
+      <Topbar eyebrow="Ejecución autónoma" title="Cola de agentes" meta={`${health.score}% · ${healthLabels[health.state]}`} />
       <section className="metric-strip compact-metrics" aria-label="Métricas de ejecución de agentes">
         <div className="metric"><span className="metric-label">En cola</span><div className="metric-value">{data.counts.queued}</div></div>
         <div className="metric"><span className="metric-label">En ejecución</span><div className="metric-value">{data.counts.running}</div></div>
