@@ -13,15 +13,15 @@ test("Control abre directamente y muestra el límite de decisión", async ({ pag
   await expect(page.getByText("La Bocana", { exact: true })).toBeVisible();
 });
 
-test("la prospección diaria es una sección principal de Control", async ({ page }) => {
+test("la prospección diaria admite oportunidades independientes el mismo día", async ({ page }) => {
   await openControl(page);
   await page.getByRole("link", { name: "Prospección" }).click();
   await expect(page.getByRole("heading", { name: "Prospección diaria" })).toBeVisible();
-  await expect(page.getByText("Estado operativo verificado", { exact: true })).toBeVisible();
-  await expect(page.getByText("prototipo al día", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Oportunidades cualificadas" })).toBeVisible();
+  await expect(page.getByText("prospectos cualificados al día", { exact: true })).toBeVisible();
 });
 
-test("el estándar de calidad y el gate de proyecto son navegables", async ({ page }) => {
+test("el estándar de calidad y el control de proyecto son navegables", async ({ page }) => {
   await openControl(page);
   await page.getByRole("link", { name: "Estándar de calidad" }).click();
   await expect(page.getByRole("heading", { name: "Estándar de Calidad Archic" })).toBeVisible();
