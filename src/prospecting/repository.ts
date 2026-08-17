@@ -64,6 +64,12 @@ export async function getProspectingData(): Promise<ProspectingData> {
   return { today: todayProspects[0] ?? null, todayProspects, recent, persistenceConfigured: true };
 }
 
+export async function getProspectById(id: string): Promise<ProspectRecord | null> {
+  if (!hasDatabase()) return null;
+  const rows = await db().query(`select * from prospects where id=$1 limit 1`, [id]) as Row[];
+  return rows[0] ? mapProspect(rows[0]) : null;
+}
+
 export async function hasProspectingRun(runDate: string): Promise<boolean> {
   if (!hasDatabase()) return false;
   const rows = await db().query(`select id from prospects where run_date=$1::date limit 1`, [runDate]) as Row[];
