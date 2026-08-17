@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 const items = [
   { href: "/sales", label: "Hoy", short: "Hoy" },
-  { href: "/sales/pipeline", label: "Pipeline", short: "Pipeline" },
+  { href: "/sales/pipeline", label: "Embudo", short: "Embudo" },
   { href: "/sales/follow-ups", label: "Seguimientos", short: "Seguimientos" },
   { href: "/sales/performance", label: "Rendimiento", short: "Rendimiento" },
 ];
