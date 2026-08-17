@@ -5,11 +5,10 @@ export default function NotFound() {
     <main className="login-panel" id="main">
       <div className="login-form">
         <p className="eyebrow">404</p>
-        <h1 className="page-title">This control surface does not exist.</h1>
-        <p>Return to the operating overview.</p>
-        <Link className="button button-primary" href="/">Overview</Link>
+        <h1 className="page-title">Esta sección de Archic Control no existe.</h1>
+        <p>Vuelve al resumen operativo.</p>
+        <Link className="button button-primary" href="/">Ir al resumen</Link>
       </div>
     </main>
   );
 }
-
