@@ -3,23 +3,117 @@ import { StatusPill } from "@/components/status-pill";
 import { getProspectingData } from "@/prospecting/repository";
 import type { ProspectRecord } from "@/prospecting/types";
 
+type JsonRecord = Record<string, unknown>;
+
 function scoreLabel(score: number | null): string {
   return score == null ? "—" : `${score.toFixed(0)}/100`;
+}
+
+function moneyLabel(value: unknown): string | null {
+  const amount = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(amount) && amount >= 0 ? `€${amount.toLocaleString("en-US")}` : null;
+}
+
+function record(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {};
+}
+
+function text(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 function prospectStatus(prospect: ProspectRecord): "passed" | "failed" | "needs_evidence" {
   return prospect.status === "ready" ? "passed" : prospect.status === "blocked" ? "failed" : "needs_evidence";
 }
 
+function prototypeMetadata(prospect: ProspectRecord) {
+  const prototype = record(prospect.research.prototype);
+  return {
+    repository: text(prototype.repository),
+    branch: text(prototype.branch),
+    commit: text(prototype.commit),
+    path: text(prototype.path),
+    downloadUrl: text(prototype.downloadUrl),
+  };
+}
+
 function prototypeHref(prospect: ProspectRecord): string | null {
-  const prototype = prospect.research.prototype as { repository?: unknown; branch?: unknown; commit?: unknown; path?: unknown } | undefined;
-  const ref = prototype?.commit || prototype?.branch;
-  if (!prototype?.repository || !ref || !prototype.path) return null;
-  return `https://github.com/${String(prototype.repository)}/blob/${String(ref)}/${String(prototype.path)}`;
+  const prototype = prototypeMetadata(prospect);
+  const ref = prototype.commit || prototype.branch;
+  if (!prototype.repository || !ref || !prototype.path) return null;
+  return `https://github.com/${prototype.repository}/blob/${ref}/${prototype.path}`;
+}
+
+function prototypeDownloadHref(prospect: ProspectRecord): string | null {
+  const prototype = prototypeMetadata(prospect);
+  const repository = prototype.repository || prospect.repositoryFullName;
+  if (!prototype.downloadUrl && (!repository || !prototype.commit)) return null;
+  return `/api/prospects/prototype-download?prospectId=${encodeURIComponent(prospect.id)}`;
+}
+
+function contactLines(prospect: ProspectRecord): Array<{ label: string; value: string }> {
+  const contact = record(prospect.research.contact);
+  const labels: Record<string, string> = {
+    email: "Email",
+    phone: "Phone",
+    phone1: "Phone",
+    phone2: "Phone 2",
+    phoneWeb: "Website phone",
+    phoneBusinessListing: "Listing phone",
+    whatsapp: "WhatsApp",
+    address: "Address",
+    addressBusinessListing: "Listing address",
+  };
+  const preferred = Object.keys(labels);
+  const seen = new Set<string>();
+  const output: Array<{ label: string; value: string }> = [];
+
+  for (const key of [...preferred, ...Object.keys(contact)]) {
+    if (seen.has(key) || key === "bestMethod") continue;
+    seen.add(key);
+    const value = text(contact[key]);
+    if (!value) continue;
+    output.push({
+      label: labels[key] || key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase()),
+      value,
+    });
+  }
+
+  return output;
+}
+
+function contactPersonLabel(prospect: ProspectRecord): string {
+  const raw = prospect.research.contactPerson ?? prospect.research.decisionMaker ?? prospect.research.askFor;
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  const person = record(raw);
+  const name = text(person.name);
+  const role = text(person.role) || text(person.title);
+  if (name) return role ? `${name} · ${role}` : name;
+  return "Not verified";
+}
+
+function bestContactMethod(prospect: ProspectRecord): string | null {
+  const contact = record(prospect.research.contact);
+  return text(prospect.research.bestContactMethod) || text(contact.bestMethod);
+}
+
+function estimatedValue(prospect: ProspectRecord): { amount: string | null; rationale: string | null } {
+  const raw = prospect.research.estimatedValue ?? prospect.research.estimatedOpportunityValue;
+  if (typeof raw === "number") return { amount: moneyLabel(raw), rationale: null };
+  const value = record(raw);
+  return {
+    amount: moneyLabel(value.amount ?? value.value),
+    rationale: text(value.rationale),
+  };
 }
 
 function ProspectCard({ prospect }: { prospect: ProspectRecord }) {
   const prototypeUrl = prototypeHref(prospect);
+  const downloadUrl = prototypeDownloadHref(prospect);
+  const contacts = contactLines(prospect);
+  const askFor = contactPersonLabel(prospect);
+  const preferredContact = bestContactMethod(prospect);
+  const opportunityValue = estimatedValue(prospect);
   const fitReason = String(
     prospect.research.fitReason ||
       prospect.research.whyStrong ||
@@ -47,6 +141,18 @@ function ProspectCard({ prospect }: { prospect: ProspectRecord }) {
             {prospect.price.maintenanceMonthly ? ` + €${Number(prospect.price.maintenanceMonthly).toLocaleString("en-US")}/month` : ""}
           </p>
         ) : null}
+        <p>
+          <strong>Estimated opportunity value</strong>{opportunityValue.amount || "Not estimated yet"}
+          {opportunityValue.rationale ? ` · ${opportunityValue.rationale}` : ""}
+        </p>
+      </div>
+      <div className="decision-recommendation">
+        <strong>Contact & decision-maker</strong>
+        <p><strong>Ask for</strong>{askFor}</p>
+        {preferredContact ? <p><strong>Best contact route</strong>{preferredContact}</p> : null}
+        {contacts.length ? contacts.map((item, index) => (
+          <p key={`${item.label}-${item.value}-${index}`}><strong>{item.label}</strong>{item.value}</p>
+        )) : <p>No verified public contact stored yet.</p>}
       </div>
       <div className="decision-recommendation">
         <strong>Evidence</strong>
@@ -65,6 +171,11 @@ function ProspectCard({ prospect }: { prospect: ProspectRecord }) {
           {prospect.repositoryFullName ? <a href={`https://github.com/${prospect.repositoryFullName}`} target="_blank" rel="noreferrer">Open GitHub repository</a> : null}
           {!prospect.deploymentUrl && !prototypeUrl && !prospect.repositoryFullName ? "Publishing has not completed." : null}
         </p>
+        {downloadUrl ? (
+          <div className="prospect-actions">
+            <a className="button button-primary" href={downloadUrl}>Download prototype</a>
+          </div>
+        ) : <p>Download will appear when an exact commit/artifact is stored.</p>}
         {prospect.outreach.message ? <p><strong>Suggested outreach</strong>{prospect.outreach.message}</p> : null}
         {prospect.error ? <p><strong>Blocker</strong>{prospect.error}</p> : null}
       </div>
