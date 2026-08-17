@@ -25,5 +25,30 @@
   --duration-fast: 120ms;
   --duration-base: 220ms;
   --ease-out: cubic-bezier(.2, .8, .2, 1);
+
+  /* Sales workspace — deliberately light, editorial and separate from Control. */
+  --sales-ink: #171713;
+  --sales-bg: #f4f2ec;
+  --sales-rail: #eeece5;
+  --sales-white: #ffffff;
+  --sales-text: #5d5a52;
+  --sales-muted: #77736a;
+  --sales-eyebrow: #7a766c;
+  --sales-copy: #69655d;
+  --sales-rank: #a09b90;
+  --sales-badge: #e6e2d7;
+  --sales-badge-text: #5e5a51;
+  --sales-positive-bg: #dce6d8;
+  --sales-positive-text: #31472e;
+  --sales-lost-bg: #e7d9d5;
+  --sales-lost-text: #70493f;
+  --sales-alert-bg: #ebe7dc;
+  --sales-alert-text: #625f57;
+  --sales-column-bg: #ebe8df;
+  --sales-card-bg: #f8f6f0;
+  --sales-note: #47443e;
+  --sales-funnel: #e6e2d8;
+  --sales-kpi: #6d695f;
+  --sales-mobile-muted: #aaa69d;
 }
 
