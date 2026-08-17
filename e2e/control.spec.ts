@@ -13,12 +13,12 @@ test("Control abre directamente y muestra el límite de decisión", async ({ pag
   await expect(page.getByText("La Bocana", { exact: true })).toBeVisible();
 });
 
-test("la prospección diaria admite oportunidades independientes el mismo día", async ({ page }) => {
+test("la prospección diaria admite flagships independientes el mismo día", async ({ page }) => {
   await openControl(page);
   await page.getByRole("link", { name: "Prospección" }).click();
   await expect(page.getByRole("heading", { name: "Prospección diaria" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Oportunidades cualificadas" })).toBeVisible();
-  await expect(page.getByText("prospectos cualificados al día", { exact: true })).toBeVisible();
+  await expect(page.getByText("flagships objetivo al día", { exact: true })).toBeVisible();
 });
 
 test("el estándar de calidad y el control de proyecto son navegables", async ({ page }) => {
