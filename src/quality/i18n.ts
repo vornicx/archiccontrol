@@ -76,7 +76,7 @@ export const qualityCheckLabels: Record<string, string> = {
   "e-09-tables-have-a-real-mobile-strategy": "Las tablas tienen una estrategia móvil real",
   "e-10-forms-usable-with-the-on-screen-keyboard-open": "Los formularios siguen siendo utilizables con el teclado en pantalla abierto",
 
-  "f-01-zero-lorem-ipsum-zero-placeholder-images-zero": "Cero Lorem ipsum, cero imágenes de placeholder y cero TODO pendientes",
+  "f-01-zero-lorem-ipsum-zero-placeholder-images-zero": "Cero texto de relleno, cero imágenes provisionales y cero tareas pendientes en el contenido final",
   "f-02-every-headline-passes-the-find-and-replace-test": "Todos los titulares superan la prueba de sustitución de marca o negocio",
   "f-03-zero-banned-phrases-from-the-anti-slop-registry": "Cero frases prohibidas del registro anti-slop",
   "f-04-spelling-and-grammar-checked-by-a-native-speaker-in-ev": "Ortografía y gramática revisadas por un hablante nativo en todos los idiomas",
