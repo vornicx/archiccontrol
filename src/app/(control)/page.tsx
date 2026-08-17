@@ -8,7 +8,7 @@ import { getDashboard } from "@/lib/repository";
 import styles from "./overview.module.css";
 
 function formatTimestamp(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat("es-ES", {
     timeZone: "Europe/Madrid",
     dateStyle: "medium",
     timeStyle: "short",
@@ -16,9 +16,9 @@ function formatTimestamp(value: string): string {
 }
 
 function formatAge(hours: number | null): string {
-  if (hours === null) return "No benchmark ingested";
-  if (hours < 1) return `${Math.max(1, Math.round(hours * 60))}m old`;
-  return `${Math.round(hours)}h old`;
+  if (hours === null) return "Sin benchmark importado";
+  if (hours < 1) return `hace ${Math.max(1, Math.round(hours * 60))} min`;
+  return `hace ${Math.round(hours)} h`;
 }
 
 export default async function OverviewPage() {
@@ -34,37 +34,37 @@ export default async function OverviewPage() {
 
   return (
     <>
-      <Topbar title="Operating overview" meta={formatTimestamp(data.generatedAt)} />
+      <Topbar title="Resumen operativo" meta={formatTimestamp(data.generatedAt)} />
 
       {!benchmarkHealth.fresh ? (
-        <section className={styles.freshnessAlert} aria-label="Benchmark data freshness warning">
+        <section className={styles.freshnessAlert} aria-label="Aviso de antigüedad de datos del benchmark">
           <div>
-            <strong>Benchmark data is stale</strong>
+            <strong>Los datos del benchmark están desactualizados</strong>
             <p>
-              Control attempted an automatic refresh, but fresh quality evidence is not available yet. Final approvals remain blocked.
-              {benchmarkHealth.lastBenchmarkAt ? ` Last successful ingestion: ${formatTimestamp(benchmarkHealth.lastBenchmarkAt)}.` : " No successful ingestion is recorded."}
-              {benchmarkSync.error ? ` Recovery detail: ${benchmarkSync.error}.` : ""}
+              Control ha intentado actualizarlos automáticamente, pero todavía no hay evidencia de calidad reciente. Las aprobaciones finales siguen bloqueadas.
+              {benchmarkHealth.lastBenchmarkAt ? ` Última importación correcta: ${formatTimestamp(benchmarkHealth.lastBenchmarkAt)}.` : " No consta ninguna importación correcta."}
+              {benchmarkSync.error ? ` Detalle de recuperación: ${benchmarkSync.error}.` : ""}
             </p>
           </div>
           <div className={styles.freshnessMeta}>{formatAge(benchmarkHealth.ageHours)}</div>
         </section>
       ) : null}
 
-      <section className="metric-strip" aria-label="Portfolio metrics">
+      <section className="metric-strip" aria-label="Métricas del portfolio">
         <div className="metric metric-primary">
-          <span className="metric-label">Needs Vadim</span>
-          <div className="metric-value">{actionableDecisions.length}<small>decision{actionableDecisions.length === 1 ? "" : "s"}</small></div>
+          <span className="metric-label">Necesita a Vadim</span>
+          <div className="metric-value">{actionableDecisions.length}<small>{actionableDecisions.length === 1 ? " decisión" : " decisiones"}</small></div>
         </div>
         <div className="metric">
-          <span className="metric-label">Portfolio quality</span>
+          <span className="metric-label">Calidad del portfolio</span>
           <div className="metric-value">{data.portfolio.score.toFixed(1)}<small>/100</small></div>
         </div>
         <div className="metric">
-          <span className="metric-label">Active gates</span>
-          <div className="metric-value">{data.portfolio.activeGates}<small>blocking</small></div>
+          <span className="metric-label">Bloqueos activos</span>
+          <div className="metric-value">{data.portfolio.activeGates}<small> bloqueos</small></div>
         </div>
         <div className="metric" title={automationHealth.detail}>
-          <span className="metric-label">Automation health</span>
+          <span className="metric-label">Salud de automatización</span>
           <div className="metric-value">{automationHealth.score}<small>% · {automationHealth.state}</small></div>
         </div>
       </section>
@@ -74,23 +74,23 @@ export default async function OverviewPage() {
           <section className="section" aria-labelledby="needs-vadim-title">
             <div className="section-head">
               <div>
-                <p className="eyebrow">Human boundary</p>
-                <h2 className="section-title" id="needs-vadim-title">Needs Vadim</h2>
+                <p className="eyebrow">Límite humano</p>
+                <h2 className="section-title" id="needs-vadim-title">Necesita a Vadim</h2>
               </div>
-              <span className="section-kicker">Everything else stays with Control</span>
+              <span className="section-kicker">Todo lo demás se queda en Control</span>
             </div>
             {actionableDecisions.length
               ? actionableDecisions.map((decision) => <DecisionCard decision={decision} key={decision.id} />)
-              : <div className="empty-decision"><div><strong>No decisions waiting.</strong>Control is resolving the operational queue autonomously.</div></div>}
+              : <div className="empty-decision"><div><strong>No hay decisiones pendientes.</strong> Control está resolviendo la cola operativa de forma autónoma.</div></div>}
           </section>
 
           <section className="section" aria-labelledby="projects-title">
             <div className="section-head">
               <div>
-                <p className="eyebrow">Active portfolio</p>
-                <h2 className="section-title" id="projects-title">Quality progression</h2>
+                <p className="eyebrow">Portfolio activo</p>
+                <h2 className="section-title" id="projects-title">Evolución de calidad</h2>
               </div>
-              <span className="section-kicker">{data.projects.length} projects</span>
+              <span className="section-kicker">{data.projects.length} proyectos</span>
             </div>
             <ProjectList projects={data.projects} />
           </section>
@@ -99,8 +99,8 @@ export default async function OverviewPage() {
         <aside className="section" aria-labelledby="runs-title">
           <div className="section-head">
             <div>
-              <p className="eyebrow">Autonomous work</p>
-              <h2 className="section-title" id="runs-title">Recent runs</h2>
+              <p className="eyebrow">Trabajo autónomo</p>
+              <h2 className="section-title" id="runs-title">Ejecuciones recientes</h2>
             </div>
           </div>
           <RunList runs={data.runs} />
