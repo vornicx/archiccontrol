@@ -13,12 +13,12 @@ test("Control opens directly and exposes the decision boundary", async ({ page }
   await expect(page.getByText("La Bocana", { exact: true })).toBeVisible();
 });
 
-test("daily prospecting is a first-class Control surface", async ({ page }) => {
+test("daily prospecting supports independent same-day opportunities", async ({ page }) => {
   await openControl(page);
   await page.getByRole("link", { name: "Prospects" }).click();
   await expect(page.getByRole("heading", { name: "Daily prospecting" })).toBeVisible();
-  await expect(page.getByText("Verified operating status", { exact: true })).toBeVisible();
-  await expect(page.getByText("One prototype per day")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Qualified opportunities" })).toBeVisible();
+  await expect(page.getByText("qualified prospects per day", { exact: true })).toBeVisible();
 });
 
 test("quality standard and a project gate are fully navigable", async ({ page }) => {
