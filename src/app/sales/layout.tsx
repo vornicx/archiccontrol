@@ -3,8 +3,8 @@ import { SalesShell } from "@/components/sales/sales-shell";
 import "./sales.css";
 
 export const metadata: Metadata = {
-  title: "Sales",
-  description: "Archic commercial workspace.",
+  title: "Ventas",
+  description: "Espacio comercial interno de Archic.",
 };
 
 export const dynamic = "force-dynamic";
