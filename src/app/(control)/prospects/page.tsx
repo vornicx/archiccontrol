@@ -12,9 +12,10 @@ function prospectStatus(prospect: ProspectRecord): "passed" | "failed" | "needs_
 }
 
 function prototypeHref(prospect: ProspectRecord): string | null {
-  const prototype = prospect.research.prototype as { repository?: unknown; branch?: unknown; path?: unknown } | undefined;
-  if (!prototype?.repository || !prototype.branch || !prototype.path) return null;
-  return `https://github.com/${String(prototype.repository)}/blob/${encodeURIComponent(String(prototype.branch))}/${String(prototype.path)}`;
+  const prototype = prospect.research.prototype as { repository?: unknown; branch?: unknown; commit?: unknown; path?: unknown } | undefined;
+  const ref = prototype?.commit || prototype?.branch;
+  if (!prototype?.repository || !ref || !prototype.path) return null;
+  return `https://github.com/${String(prototype.repository)}/blob/${String(ref)}/${String(prototype.path)}`;
 }
 
 function ProspectCard({ prospect }: { prospect: ProspectRecord }) {
