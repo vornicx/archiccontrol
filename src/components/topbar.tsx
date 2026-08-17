@@ -5,8 +5,7 @@ export function Topbar({ eyebrow = "Archic Control", title, meta }: { eyebrow?: 
         <p className="eyebrow">{eyebrow}</p>
         <h1 className="page-title">{title}</h1>
       </div>
-      {meta ? <div className="topbar-meta"><strong>Last reconciliation</strong>{meta}</div> : null}
+      {meta ? <div className="topbar-meta"><strong>Última reconciliación</strong>{meta}</div> : null}
     </header>
   );
 }
-

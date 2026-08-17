@@ -6,14 +6,14 @@ export default async function RunsPage() {
   const data = await getDashboard();
   return (
     <>
-      <Topbar eyebrow="Automation" title="Workflow runs" meta={`${data.portfolio.automationHealth}% healthy`} />
+      <Topbar eyebrow="Automatización" title="Ejecuciones de flujos" meta={`${data.portfolio.automationHealth}% de salud`} />
       <section>
         <div className="section-head">
           <div>
-            <p className="eyebrow">Execution ledger</p>
-            <h2 className="section-title">Latest activity</h2>
+            <p className="eyebrow">Registro de ejecución</p>
+            <h2 className="section-title">Actividad más reciente</h2>
           </div>
-          <span className="section-kicker">Every stage remains auditable</span>
+          <span className="section-kicker">Cada fase permanece auditable</span>
         </div>
         <RunList runs={data.runs} />
       </section>

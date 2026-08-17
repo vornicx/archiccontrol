@@ -7,6 +7,14 @@ function scoreLabel(score: number | null): string {
   return score == null ? "—" : `${score.toFixed(0)}/100`;
 }
 
+const statusLabels: Record<string, string> = {
+  researching: "investigando",
+  verified: "verificado",
+  ready: "listo",
+  discarded: "descartado",
+  blocked: "bloqueado",
+};
+
 function prospectStatus(prospect: ProspectRecord): "passed" | "failed" | "needs_evidence" {
   return prospect.status === "ready" ? "passed" : prospect.status === "blocked" ? "failed" : "needs_evidence";
 }
@@ -25,48 +33,48 @@ function ProspectCard({ prospect }: { prospect: ProspectRecord }) {
       prospect.research.whyStrong ||
       prospect.research.summary ||
       prospect.error ||
-      "Verified prospecting opportunity",
+      "Oportunidad verificada por el motor de prospección",
   );
   const websiteGap = prospect.research.websiteGap || prospect.research.salesAngle;
 
   return (
     <article className="decision-card">
-      <span className="decision-type">{prospect.category || "Prospect"} · {prospect.city || "Spain"}</span>
+      <span className="decision-type">{prospect.category || "Prospecto"} · {prospect.city || "España"}</span>
       <h3>{prospect.name}</h3>
       <p>{fitReason}</p>
       <div className="decision-recommendation">
-        <strong>Commercial read</strong>
+        <strong>Lectura comercial</strong>
         <p>
-          Score {scoreLabel(prospect.score)} · Verification {prospect.verificationConfidence} · Status{" "}
-          <StatusPill status={prospectStatus(prospect)} label={prospect.status} />
+          Puntuación {scoreLabel(prospect.score)} · Verificación {prospect.verificationConfidence} · Estado{" "}
+          <StatusPill status={prospectStatus(prospect)} label={statusLabels[prospect.status] ?? prospect.status} />
         </p>
         {websiteGap ? <p>{String(websiteGap)}</p> : null}
         {prospect.price.target ? (
           <p>
-            <strong>Recommended target</strong>€{Number(prospect.price.target).toLocaleString("en-US")}
-            {prospect.price.maintenanceMonthly ? ` + €${Number(prospect.price.maintenanceMonthly).toLocaleString("en-US")}/month` : ""}
+            <strong>Objetivo recomendado</strong> €{Number(prospect.price.target).toLocaleString("es-ES")}
+            {prospect.price.maintenanceMonthly ? ` + ${Number(prospect.price.maintenanceMonthly).toLocaleString("es-ES")} €/mes` : ""}
           </p>
         ) : null}
       </div>
       <div className="decision-recommendation">
-        <strong>Evidence</strong>
+        <strong>Evidencia</strong>
         {prospect.evidence.length ? prospect.evidence.map((item, index) => (
           <p key={`${item.url}-${item.sourceName}-${index}`}>
             <a href={item.url} target="_blank" rel="noreferrer">{item.sourceName}</a>
             {item.detail ? ` · ${item.detail}` : ""}{item.observedAt ? ` · ${item.observedAt}` : ""}
           </p>
-        )) : <p>No evidence bundle stored.</p>}
+        )) : <p>No hay un paquete de evidencia guardado.</p>}
       </div>
       <div className="decision-recommendation">
-        <strong>Prototype & handoff</strong>
+        <strong>Prototipo y entrega</strong>
         <p>
-          {prospect.deploymentUrl ? <><a href={prospect.deploymentUrl} target="_blank" rel="noreferrer">Open live prototype</a>{" · "}</> : null}
-          {prototypeUrl ? <><a href={prototypeUrl} target="_blank" rel="noreferrer">Open exact prototype</a>{" · "}</> : null}
-          {prospect.repositoryFullName ? <a href={`https://github.com/${prospect.repositoryFullName}`} target="_blank" rel="noreferrer">Open GitHub repository</a> : null}
-          {!prospect.deploymentUrl && !prototypeUrl && !prospect.repositoryFullName ? "Publishing has not completed." : null}
+          {prospect.deploymentUrl ? <><a href={prospect.deploymentUrl} target="_blank" rel="noreferrer">Abrir prototipo publicado</a>{" · "}</> : null}
+          {prototypeUrl ? <><a href={prototypeUrl} target="_blank" rel="noreferrer">Abrir versión exacta del prototipo</a>{" · "}</> : null}
+          {prospect.repositoryFullName ? <a href={`https://github.com/${prospect.repositoryFullName}`} target="_blank" rel="noreferrer">Abrir repositorio de GitHub</a> : null}
+          {!prospect.deploymentUrl && !prototypeUrl && !prospect.repositoryFullName ? "La publicación todavía no ha terminado." : null}
         </p>
-        {prospect.outreach.message ? <p><strong>Suggested outreach</strong>{prospect.outreach.message}</p> : null}
-        {prospect.error ? <p><strong>Blocker</strong>{prospect.error}</p> : null}
+        {prospect.outreach.message ? <p><strong>Contacto sugerido</strong> {prospect.outreach.message}</p> : null}
+        {prospect.error ? <p><strong>Bloqueo</strong> {prospect.error}</p> : null}
       </div>
     </article>
   );
@@ -79,31 +87,31 @@ export default async function ProspectsPage() {
 
   return (
     <>
-      <Topbar eyebrow="Commercial engine" title="Daily prospecting" meta="Independent opportunities · approval before outreach" />
+      <Topbar eyebrow="Motor comercial" title="Prospección diaria" meta="Oportunidades independientes · aprobación antes de contactar" />
 
       <section className="standard-hero">
         <div>
-          <p className="eyebrow">Selection policy</p>
-          <h2 className="page-title">Verified operating status before build spend.</h2>
-          <p>Control researches multiple businesses, rejects ambiguous or inactive candidates, and stores every qualified opportunity independently. Public-web verification can never provide literal 100% certainty, so uncertainty is treated as a reason to discard rather than guess.</p>
+          <p className="eyebrow">Política de selección</p>
+          <h2 className="page-title">Verificar que el negocio está activo antes de invertir tiempo de desarrollo.</h2>
+          <p>Control investiga varios negocios, descarta candidatos ambiguos o inactivos y guarda cada oportunidad cualificada de forma independiente. Si la evidencia pública deja dudas importantes, se descarta antes que adivinar.</p>
         </div>
-        <div className="standard-stats" aria-label="Prospecting rules">
-          <div className="standard-stat"><strong>3+</strong><span>independent sources</span></div>
-          <div className="standard-stat"><strong>30d</strong><span>fresh activity target</span></div>
-          <div className="standard-stat"><strong>N</strong><span>qualified prospects per day</span></div>
+        <div className="standard-stats" aria-label="Reglas de prospección">
+          <div className="standard-stat"><strong>3+</strong><span>fuentes independientes</span></div>
+          <div className="standard-stat"><strong>30d</strong><span>actividad reciente objetivo</span></div>
+          <div className="standard-stat"><strong>N</strong><span>prospectos cualificados al día</span></div>
         </div>
       </section>
 
       <section className="section" aria-labelledby="today-prospect">
         <div className="section-head">
-          <div><p className="eyebrow">Today</p><h2 className="section-title" id="today-prospect">Qualified opportunities</h2></div>
-          <span className="section-kicker">{data.todayProspects.length} independent {data.todayProspects.length === 1 ? "prospect" : "prospects"}</span>
+          <div><p className="eyebrow">Hoy</p><h2 className="section-title" id="today-prospect">Oportunidades cualificadas</h2></div>
+          <span className="section-kicker">{data.todayProspects.length} {data.todayProspects.length === 1 ? "prospecto independiente" : "prospectos independientes"}</span>
         </div>
 
         {!data.persistenceConfigured ? (
-          <div className="empty-decision"><div><strong>Persistence required.</strong>Configure DATABASE_URL and run the prospecting migrations before the autonomous commercial loop can persist results.</div></div>
+          <div className="empty-decision"><div><strong>Hace falta persistencia.</strong> Configura DATABASE_URL y ejecuta las migraciones de prospección antes de guardar resultados del motor comercial.</div></div>
         ) : !data.todayProspects.length ? (
-          <div className="empty-decision"><div><strong>No run recorded today.</strong>The daily reconciler will execute an idempotent prospecting iteration when the research and publishing integrations are configured.</div></div>
+          <div className="empty-decision"><div><strong>Hoy todavía no hay una ejecución registrada.</strong> El reconciliador diario ejecutará la prospección cuando estén configuradas las integraciones de investigación y publicación.</div></div>
         ) : (
           <div className="settings-grid">
             {data.todayProspects.map((prospect) => <ProspectCard prospect={prospect} key={prospect.id} />)}
@@ -112,15 +120,15 @@ export default async function ProspectsPage() {
       </section>
 
       <section className="section" aria-labelledby="recent-prospects">
-        <div className="section-head"><div><p className="eyebrow">History</p><h2 className="section-title" id="recent-prospects">Recent opportunities</h2></div><span className="section-kicker">No duplicate outreach</span></div>
+        <div className="section-head"><div><p className="eyebrow">Historial</p><h2 className="section-title" id="recent-prospects">Oportunidades recientes</h2></div><span className="section-kicker">Sin contactos duplicados</span></div>
         <div className="settings-grid">
           {history.length ? history.map((prospect) => (
             <article className="integration-card" key={prospect.id}>
               <h3>{prospect.name}</h3>
               <p>{prospect.runDate.slice(0, 10)} · {scoreLabel(prospect.score)} · {prospect.city || "—"}</p>
-              <div className="integration-state"><StatusPill status={prospectStatus(prospect)} label={prospect.status} /></div>
+              <div className="integration-state"><StatusPill status={prospectStatus(prospect)} label={statusLabels[prospect.status] ?? prospect.status} /></div>
             </article>
-          )) : <article className="integration-card"><h3>No earlier history yet</h3><p>Past verified opportunities will appear here.</p></article>}
+          )) : <article className="integration-card"><h3>Todavía no hay historial anterior</h3><p>Las oportunidades verificadas anteriores aparecerán aquí.</p></article>}
         </div>
       </section>
     </>

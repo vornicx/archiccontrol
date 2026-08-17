@@ -3,7 +3,7 @@ import "@/app/globals.css";
 
 export const metadata: Metadata = {
   title: { default: "Archic Control", template: "%s · Archic Control" },
-  description: "The internal operating system for Archic.",
+  description: "El sistema operativo interno de Archic.",
   robots: { index: false, follow: false },
 };
 
@@ -17,4 +17,3 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
-

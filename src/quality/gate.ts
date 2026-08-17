@@ -47,56 +47,56 @@ export function evaluateQualityGate(
 
   checks.push({
     id: "benchmark-score",
-    label: `Benchmark score ≥ ${threshold}`,
+    label: `Puntuación del benchmark ≥ ${threshold}`,
     status: project.score >= threshold ? "passed" : "failed",
     source: "benchmark",
     blocking: true,
-    detail: `Observed ${project.score.toFixed(1)} / 100.`,
+    detail: `Resultado observado: ${project.score.toFixed(1)} / 100.`,
   });
 
   checks.push({
     id: "benchmark-hard-gates",
-    label: "No active hard quality gates",
+    label: "Sin bloqueos duros de calidad activos",
     status: project.gates.length === 0 ? "passed" : "failed",
     source: "benchmark",
     blocking: true,
     detail: project.gates.length === 0
-      ? "The benchmark reported no active caps."
+      ? "El benchmark no ha detectado límites activos."
       : project.gates.map((gate) => gate.label ?? gate.id).join(" · "),
   });
 
   const severeIssues = project.issues.filter((issue) => severityRank[normalizeSeverity(issue.severity)] >= severityRank.high);
   checks.push({
     id: "severe-findings",
-    label: "No unresolved critical or high findings",
+    label: "Sin incidencias críticas o altas sin resolver",
     status: severeIssues.length === 0 ? "passed" : "failed",
     source: "benchmark",
     blocking: true,
     detail: severeIssues.length === 0
-      ? "No severe findings were reported."
-      : `${severeIssues.length} severe finding(s): ${severeIssues.slice(0, 3).map((issue) => issue.title).join(" · ")}`,
+      ? "No se han detectado incidencias graves."
+      : `${severeIssues.length} incidencia(s) grave(s): ${severeIssues.slice(0, 3).map((issue) => issue.title).join(" · ")}`,
   });
 
   checks.push({
     id: "manual-evidence",
-    label: "Manual and real-device evidence is complete",
+    label: "La evidencia manual y en dispositivos reales está completa",
     status: options.manualEvidenceComplete ? "passed" : "needs_evidence",
     source: "human",
     blocking: true,
     detail: options.manualEvidenceComplete
-      ? "Required sign-off evidence is attached."
-      : "Real-device, keyboard, screen-reader and content truth checks remain to be signed off.",
+      ? "La evidencia obligatoria de validación está adjunta."
+      : "Quedan por validar las pruebas en dispositivo real, teclado, lector de pantalla y veracidad del contenido.",
   });
 
   checks.push({
     id: "polish-pass",
-    label: qualityStandard.polish.label,
+    label: "Pasada final de pulido y criterio visual",
     status: options.polishPassed ? "passed" : "needs_evidence",
     source: "human",
     blocking: true,
     detail: options.polishPassed
-      ? "Polish pass signed."
-      : "The judgement pass cannot be inferred from a numeric score.",
+      ? "Pasada de pulido validada."
+      : "La pasada de criterio visual no puede inferirse únicamente a partir de una puntuación numérica.",
   });
 
   const blockers = checks.filter((check) => check.blocking && check.status !== "passed");
@@ -109,10 +109,10 @@ export function evaluateQualityGate(
       : "preview";
 
   const nextAction = failed
-    ? "Route findings to an agent, rerun the failed stage, then evaluate again."
+    ? "Enviar las incidencias a un agente, repetir la fase fallida y volver a evaluar."
     : status === "needs_evidence"
-      ? "Collect the missing manual evidence and complete the Polish pass."
-      : "Create one final approval decision for Vadim.";
+      ? "Recoger la evidencia manual que falta y completar la pasada de pulido."
+      : "Crear una única decisión de aprobación final para Vadim.";
 
   return {
     projectId: project.id,
@@ -123,9 +123,8 @@ export function evaluateQualityGate(
     checks,
     blockers,
     summary: blockers.length === 0
-      ? "Automated and manual evidence satisfy Archic Quality Standard v1.0."
-      : `${blockers.length} blocking condition(s) remain; human approval is not requested yet.`,
+      ? "La evidencia automática y manual cumple el Estándar de Calidad Archic v1.0."
+      : `Quedan ${blockers.length} condición(es) bloqueante(s); todavía no se solicita aprobación humana.`,
     nextAction,
   };
 }
-

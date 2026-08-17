@@ -38,7 +38,7 @@ export async function getAutomationHealth(): Promise<AutomationHealth> {
       oldestQueuedAt: null,
       githubConfigured,
       state: githubConfigured ? "working" : "blocked",
-      detail: githubConfigured ? "Automation is configured without durable queue telemetry." : "GitHub automation is not configured.",
+      detail: githubConfigured ? "La automatización está configurada, pero no hay telemetría persistente de la cola." : "La automatización de GitHub no está configurada.",
     };
   }
 
@@ -68,7 +68,7 @@ export async function getAutomationHealth(): Promise<AutomationHealth> {
       oldestQueuedAt,
       githubConfigured,
       state: "blocked",
-      detail: `${queued} repository task(s) are waiting but GitHub automation is not configured.`,
+      detail: `${queued} tarea(s) de repositorio están esperando, pero la automatización de GitHub no está configurada.`,
     };
   }
 
@@ -82,7 +82,7 @@ export async function getAutomationHealth(): Promise<AutomationHealth> {
       oldestQueuedAt,
       githubConfigured,
       state: "blocked",
-      detail: `${blocked} task(s) exhausted their automated retry budget.`,
+      detail: `${blocked} tarea(s) han agotado su presupuesto de reintentos automáticos.`,
     };
   }
 
@@ -96,7 +96,7 @@ export async function getAutomationHealth(): Promise<AutomationHealth> {
       oldestQueuedAt,
       githubConfigured,
       state: "degraded",
-      detail: `${staleQueued} queued task(s) have not started for more than two hours.`,
+      detail: `${staleQueued} tarea(s) llevan más de dos horas en cola sin empezar.`,
     };
   }
 
@@ -110,7 +110,7 @@ export async function getAutomationHealth(): Promise<AutomationHealth> {
       oldestQueuedAt,
       githubConfigured,
       state: "working",
-      detail: `${active} active and ${queued} queued task(s).`,
+      detail: `${active} tarea(s) activas y ${queued} en cola.`,
     };
   }
 
@@ -123,6 +123,6 @@ export async function getAutomationHealth(): Promise<AutomationHealth> {
     oldestQueuedAt,
     githubConfigured,
     state: "healthy",
-    detail: "Automation queue is clear.",
+    detail: "La cola de automatización está despejada.",
   };
 }

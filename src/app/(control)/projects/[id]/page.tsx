@@ -5,6 +5,24 @@ import { getLiveProject } from "@/lib/project-detail";
 import { normalizeSeverity } from "@/quality/gate";
 import { journeyManifests } from "@/automation/manifests";
 
+const severityLabels = {
+  critical: "crítico",
+  high: "alto",
+  medium: "medio",
+  low: "bajo",
+} as const;
+
+function profileLabel(profile: string): string {
+  const labels: Record<string, string> = {
+    "luxury-real-estate": "inmobiliaria de lujo",
+    "luxury-hospitality": "hospitalidad de lujo",
+    "luxury-automotive": "automoción de lujo",
+    "premium-service": "servicio premium",
+    "restaurant": "restauración",
+  };
+  return labels[profile] ?? profile.replaceAll("-", " ");
+}
+
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const data = await getLiveProject(id);
@@ -13,10 +31,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const journeys = journeyManifests.get(project.id);
   return (
     <>
-      <Topbar eyebrow={project.profile.replaceAll("-", " ")} title={project.name} meta={project.repository} />
+      <Topbar eyebrow={profileLabel(project.profile)} title={project.name} meta={project.repository} />
       <section className="project-hero">
         <div>
-          <p className="eyebrow">Quality Gate v{gate.standardVersion}</p>
+          <p className="eyebrow">Gate de calidad v{gate.standardVersion}</p>
           <h2 className="page-title">{gate.summary}</h2>
           <p className="section-kicker">{gate.nextAction}</p>
         </div>
@@ -26,10 +44,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </div>
       </section>
 
-      <section className="gate-checks" aria-label="Quality Gate checks">
+      <section className="gate-checks" aria-label="Comprobaciones del gate de calidad">
         <article className="gate-check">
-          <StatusPill status={journeys ? "passed" : "failed"} label={journeys ? "configured" : "missing"} />
-          <div><h3>Critical Playwright journeys</h3><p>{journeys ? `${journeys.journeys.length} project contracts · desktop and mobile` : "A versioned project journey manifest is required."}</p></div>
+          <StatusPill status={journeys ? "passed" : "failed"} label={journeys ? "configurado" : "falta configurar"} />
+          <div><h3>Recorridos críticos de Playwright</h3><p>{journeys ? `${journeys.journeys.length} contratos de proyecto · escritorio y móvil` : "Se necesita un manifiesto versionado con los recorridos críticos del proyecto."}</p></div>
         </article>
         {gate.checks.map((check) => (
           <article className="gate-check" key={check.id}>
@@ -45,21 +63,24 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       <section className="finding-list" aria-labelledby="findings-title">
         <div className="section-head">
           <div>
-            <p className="eyebrow">Agent queue</p>
-            <h2 className="section-title" id="findings-title">Open findings</h2>
+            <p className="eyebrow">Cola de agentes</p>
+            <h2 className="section-title" id="findings-title">Incidencias abiertas</h2>
           </div>
-          <span className="section-kicker">{project.issues.length} surfaced</span>
+          <span className="section-kicker">{project.issues.length} detectadas</span>
         </div>
-        {project.issues.map((issue) => (
-          <article className="finding" key={issue.id}>
-            <div className="finding-head">
-              <h3>{issue.title}</h3>
-              <StatusPill status={normalizeSeverity(issue.severity) === "critical" ? "failed" : "needs_evidence"} label={normalizeSeverity(issue.severity)} />
-            </div>
-            <p>{issue.detail}</p>
-            {issue.recommendation ? <div className="finding-action">Autofix direction · {issue.recommendation}</div> : null}
-          </article>
-        ))}
+        {project.issues.map((issue) => {
+          const severity = normalizeSeverity(issue.severity);
+          return (
+            <article className="finding" key={issue.id}>
+              <div className="finding-head">
+                <h3>{issue.title}</h3>
+                <StatusPill status={severity === "critical" ? "failed" : "needs_evidence"} label={severityLabels[severity]} />
+              </div>
+              <p>{issue.detail}</p>
+              {issue.recommendation ? <div className="finding-action">Dirección para autocorrección · {issue.recommendation}</div> : null}
+            </article>
+          );
+        })}
       </section>
     </>
   );
