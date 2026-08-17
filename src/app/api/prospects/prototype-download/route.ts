@@ -46,6 +46,19 @@ function encodedPath(path: string): string {
   return path.split("/").map(encodeURIComponent).join("/");
 }
 
+function downloadFilename(name: string, path: string): string {
+  const sourceName = path.split("/").pop() || "prototype";
+  const dot = sourceName.lastIndexOf(".");
+  const extension = dot > 0 ? sourceName.slice(dot) : "";
+  const slug = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "prospect";
+  return `${slug}-prototype${extension}`;
+}
+
 export async function GET(request: Request) {
   const prospectId = new URL(request.url).searchParams.get("prospectId")?.trim();
   if (!prospectId) return NextResponse.json({ ok: false, error: "prospectId is required" }, { status: 400 });
@@ -65,7 +78,7 @@ export async function GET(request: Request) {
     const rawUrl = `https://raw.githubusercontent.com/${repository}/${commit}/${encodedPath(path)}`;
     const upstream = await fetch(rawUrl, { cache: "no-store" });
     if (upstream.ok && upstream.body) {
-      const filename = path.split("/").pop() || `${prospect.id}-prototype`;
+      const filename = downloadFilename(prospect.name, path);
       return new Response(upstream.body, {
         status: 200,
         headers: {
