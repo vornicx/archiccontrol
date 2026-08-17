@@ -14,15 +14,15 @@ export default async function SalesTodayPage() {
   return (
     <>
       <header className="sales-header">
-        <div><p className="sales-eyebrow">Antero · Commercial operating view</p><h1 className="sales-title">Hoy.</h1><p className="sales-subtitle">Una pantalla para saber a quién contactar, qué pasó la última vez y cuál es el siguiente movimiento. Sin ruido.</p></div>
+        <div><p className="sales-eyebrow">Antero · Vista operativa comercial</p><h1 className="sales-title">Hoy.</h1><p className="sales-subtitle">Una pantalla para saber a quién contactar, qué pasó la última vez y cuál es el siguiente movimiento. Sin ruido.</p></div>
         <span className="sales-live"><strong>{active.length}</strong> oportunidades activas</span>
       </header>
-      {!persistenceConfigured ? <div className="sales-alert"><strong>Modo preview.</strong> La interfaz ya está montada con vuestro pipeline actual; cuando apliquemos la migración, las llamadas y follow-ups quedarán persistidos.</div> : null}
-      <section className="sales-summary" aria-label="Sales summary">
+      {!persistenceConfigured ? <div className="sales-alert"><strong>Modo de prueba.</strong> La interfaz ya está montada con vuestro pipeline actual; cuando apliquemos la migración, las llamadas y seguimientos quedarán guardados.</div> : null}
+      <section className="sales-summary" aria-label="Resumen comercial">
         <div className="sales-stat"><strong>{anteroQueue.length}</strong><span>acciones de Antero</span></div>
         <div className="sales-stat"><strong>{active.filter((lead) => lead.stage === "contacted").length}</strong><span>esperando respuesta</span></div>
         <div className="sales-stat"><strong>{proposals}</strong><span>propuestas abiertas</span></div>
-        <div className="sales-stat"><strong>{money.format(pipelineValue)}</strong><span>pipeline estimado</span></div>
+        <div className="sales-stat"><strong>{money.format(pipelineValue)}</strong><span>valor estimado</span></div>
       </section>
       <section className="sales-section">
         <div className="sales-section-head"><h2>Prioridad de hoy</h2><span>ordenada por siguiente acción</span></div>
@@ -39,7 +39,7 @@ export default async function SalesTodayPage() {
         </div>
       </section>
       <section className="sales-section">
-        <div className="sales-section-head"><h2>Handoff de Vadim</h2><span>trabajo que desbloquea ventas</span></div>
+        <div className="sales-section-head"><h2>Trabajo de Vadim</h2><span>lo que desbloquea ventas</span></div>
         <div className="sales-task-list">
           {active.filter((lead) => lead.nextActionOwner === "vadim" && lead.nextAction).map((lead) => (
             <Link className="sales-task" href={`/sales/leads/${lead.id}`} key={lead.id}>
