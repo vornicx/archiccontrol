@@ -3,11 +3,11 @@ import { StatusPill } from "@/components/status-pill";
 
 const environmentLabels: Record<string, string> = {
   production: "producción",
-  preview: "preview",
+  preview: "vista previa",
 };
 
 export function PreviewList({ previews }: { previews: DeploymentPreview[] }) {
-  if (!previews.length) return <div className="empty-decision"><div><strong>Todavía no hay previews.</strong> Los artefactos de despliegue validados aparecerán aquí.</div></div>;
+  if (!previews.length) return <div className="empty-decision"><div><strong>Todavía no hay vistas previas.</strong> Los artefactos de despliegue validados aparecerán aquí.</div></div>;
   return (
     <div className="ops-list">
       {previews.map((preview) => (
@@ -17,7 +17,7 @@ export function PreviewList({ previews }: { previews: DeploymentPreview[] }) {
             <div className="ops-meta">{environmentLabels[preview.environment] ?? preview.environment} · {preview.gitRef ?? "sin rama"} · {preview.gitSha?.slice(0, 7) ?? "SHA pendiente"}</div>
           </div>
           <div className="preview-evidence"><span>Calidad</span><StatusPill status={preview.qualityStatus} /></div>
-          <div className="preview-evidence"><span>Smoke test</span><StatusPill status={preview.smokeStatus} /></div>
+          <div className="preview-evidence"><span>Prueba rápida</span><StatusPill status={preview.smokeStatus} /></div>
           <StatusPill status={preview.status} />
         </article>
       ))}
