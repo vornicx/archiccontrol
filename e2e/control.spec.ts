@@ -55,6 +55,6 @@ test("la cola de agentes y la preparación de despliegues son visibles", async (
   await expect(page.getByRole("heading", { name: "Cola de agentes" })).toBeVisible();
   await expect(page.getByText("Política de reintentos")).toBeVisible();
   await page.getByRole("link", { name: "Despliegues" }).click();
-  await expect(page.getByRole("heading", { name: "Previews y despliegues" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Vistas previas y despliegues" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Preparación para producción" })).toBeVisible();
 });
