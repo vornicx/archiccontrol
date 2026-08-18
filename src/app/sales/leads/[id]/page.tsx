@@ -10,6 +10,7 @@ import {
   updateNextActionAction,
   updateStageAction,
 } from "@/app/sales/actions";
+import { DateTimePicker } from "@/components/date-time-picker";
 import { salesOperationsConfigured } from "@/sales/operations-readiness";
 import {
   getSalesActivities,
@@ -208,12 +209,10 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
             <form action={updateNextActionAction} className={styles.quickForm}>
               <input type="hidden" name="leadId" value={lead.id} />
               <textarea name="nextAction" defaultValue={lead.nextAction ?? ""} placeholder="Ej. llamar, enviar propuesta, preparar demo…" disabled={!persistenceConfigured} />
-              <div className={styles.quickGrid}>
-                <select name="nextActionOwner" defaultValue={lead.nextActionOwner} disabled={!persistenceConfigured} aria-label="Responsable de siguiente acción">
-                  <option value="antero">Antero</option><option value="vadim">Vadim</option>
-                </select>
-                <input name="nextActionAt" type="datetime-local" defaultValue={madridInputValue(lead.nextActionAt)} disabled={!persistenceConfigured} aria-label="Fecha de siguiente acción" />
-              </div>
+              <select name="nextActionOwner" defaultValue={lead.nextActionOwner} disabled={!persistenceConfigured} aria-label="Responsable de siguiente acción">
+                <option value="antero">Antero</option><option value="vadim">Vadim</option>
+              </select>
+              <DateTimePicker name="nextActionAt" initialValue={madridInputValue(lead.nextActionAt)} disabled={!persistenceConfigured} />
               <select name="actor" defaultValue={lead.nextActionOwner} disabled={!persistenceConfigured} aria-label="Quién actualiza la acción">
                 <option value="antero">Actualizado por Antero</option><option value="vadim">Actualizado por Vadim</option>
               </select>
