@@ -14,7 +14,7 @@ export default async function SalesTodayPage() {
   return (
     <>
       <header className="sales-header">
-        <div><p className="sales-eyebrow">Antero · Vista operativa comercial</p><h1 className="sales-title">Hoy.</h1><p className="sales-subtitle">Una pantalla para saber a quién contactar, qué pasó la última vez y cuál es el siguiente movimiento. Sin ruido.</p></div>
+        <div><p className="sales-eyebrow">Comercial · Prioridades de hoy</p><h1 className="sales-title">Ventas</h1><p className="sales-subtitle">Qué hay que mover hoy, quién lo tiene asignado y cuánto valor comercial está en juego.</p></div>
         <span className="sales-live"><strong>{active.length}</strong> oportunidades activas</span>
       </header>
       {!persistenceConfigured ? <div className="sales-alert"><strong>Modo de prueba.</strong> La interfaz ya está montada con vuestro pipeline actual; cuando apliquemos la migración, las llamadas y seguimientos quedarán guardados.</div> : null}
@@ -25,7 +25,7 @@ export default async function SalesTodayPage() {
         <div className="sales-stat"><strong>{money.format(pipelineValue)}</strong><span>valor estimado</span></div>
       </section>
       <section className="sales-section">
-        <div className="sales-section-head"><h2>Prioridad de hoy</h2><span>ordenada por siguiente acción</span></div>
+        <div className="sales-section-head"><h2>Prioridad de Antero</h2><span>ordenada por siguiente acción</span></div>
         <div className="sales-task-list">
           {anteroQueue.map((lead, index) => (
             <Link className="sales-task" href={`/sales/leads/${lead.id}`} key={lead.id}>
@@ -39,7 +39,7 @@ export default async function SalesTodayPage() {
         </div>
       </section>
       <section className="sales-section">
-        <div className="sales-section-head"><h2>Trabajo de Vadim</h2><span>lo que desbloquea ventas</span></div>
+        <div className="sales-section-head"><h2>Prioridad de Vadim</h2><span>trabajo que desbloquea ventas</span></div>
         <div className="sales-task-list">
           {active.filter((lead) => lead.nextActionOwner === "vadim" && lead.nextAction).map((lead) => (
             <Link className="sales-task" href={`/sales/leads/${lead.id}`} key={lead.id}>
