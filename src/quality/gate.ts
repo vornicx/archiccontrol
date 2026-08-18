@@ -1,4 +1,5 @@
 import type { BenchmarkProject, Severity } from "@/lib/types";
+import { rubricAllowsClientReview, type QualityRubricReport } from "@/quality/rubric";
 import { qualityStandard } from "@/quality/standard";
 
 export type GateCheckStatus = "passed" | "failed" | "needs_evidence";
@@ -7,7 +8,7 @@ export interface GateCheckResult {
   id: string;
   label: string;
   status: GateCheckStatus;
-  source: "benchmark" | "quality-standard" | "human";
+  source: "benchmark" | "quality-standard" | "rubric" | "human";
   blocking: boolean;
   detail: string;
 }
@@ -40,7 +41,7 @@ export function normalizeSeverity(value?: string): Severity {
 
 export function evaluateQualityGate(
   project: BenchmarkProject,
-  options: { manualEvidenceComplete?: boolean; polishPassed?: boolean } = {},
+  options: { manualEvidenceComplete?: boolean; polishPassed?: boolean; rubric?: QualityRubricReport | null } = {},
 ): QualityGateResult {
   const checks: GateCheckResult[] = [];
   const threshold = qualityStandard.thresholds.benchmarkScoreForApproval;
@@ -77,6 +78,24 @@ export function evaluateQualityGate(
       : `${severeIssues.length} incidencia(s) grave(s): ${severeIssues.slice(0, 3).map((issue) => issue.title).join(" · ")}`,
   });
 
+  const rubric = options.rubric;
+  checks.push({
+    id: "archic-rubric",
+    label: "Rúbrica Archic client-ready superada",
+    status: !rubric
+      ? "needs_evidence"
+      : rubricAllowsClientReview(rubric)
+        ? "passed"
+        : rubric.status === "REJECT"
+          ? "failed"
+          : "needs_evidence",
+    source: "rubric",
+    blocking: true,
+    detail: rubric
+      ? `Archic Score ${rubric.projectScore.toFixed(1)} / 100 · ${rubric.archicLevel} · mobile ${rubric.mobileScore.toFixed(1)} · ${rubric.status}.`
+      : "Falta una revisión persistida con la Rúbrica Ejecutable Archic v1.0.",
+  });
+
   checks.push({
     id: "manual-evidence",
     label: "La evidencia manual y en dispositivos reales está completa",
@@ -111,7 +130,7 @@ export function evaluateQualityGate(
   const nextAction = failed
     ? "Enviar las incidencias a un agente, repetir la fase fallida y volver a evaluar."
     : status === "needs_evidence"
-      ? "Recoger la evidencia manual que falta y completar la pasada de pulido."
+      ? "Completar la rúbrica o la evidencia manual que falta antes de solicitar aprobación."
       : "Crear una única decisión de aprobación final para Vadim.";
 
   return {
@@ -123,7 +142,7 @@ export function evaluateQualityGate(
     checks,
     blockers,
     summary: blockers.length === 0
-      ? "La evidencia automática y manual cumple el Estándar de Calidad Archic v1.0."
+      ? "Benchmark, Rúbrica Archic y evidencia manual cumplen el estándar de entrega."
       : `Quedan ${blockers.length} condición(es) bloqueante(s); todavía no se solicita aprobación humana.`,
     nextAction,
   };
