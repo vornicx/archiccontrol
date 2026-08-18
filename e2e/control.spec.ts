@@ -21,9 +21,9 @@ test("la prospección diaria admite flagships independientes el mismo día", asy
   await expect(page.getByText("flagships objetivo al día", { exact: true })).toBeVisible();
 });
 
-test("Ventas funciona como CRM operativo dentro de Control", async ({ page }) => {
+test("el CRM funciona como espacio comercial operativo dentro de Control", async ({ page }) => {
   await openControl(page);
-  await page.getByRole("link", { name: "Ventas", exact: true }).click();
+  await page.getByRole("link", { name: "CRM", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Resumen", exact: true })).toBeVisible();
   await expect(page.getByText("Pipeline abierto", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Nuevo prospecto", exact: true })).toBeVisible();
