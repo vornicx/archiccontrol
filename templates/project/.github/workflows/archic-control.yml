@@ -108,8 +108,11 @@ jobs:
       - if: steps.resolve.outputs.has_task == 'true'
         run: npm ci --no-audit --no-fund
       - name: Install visual review browser
-        if: steps.resolve.outputs.has_task == 'true' && env.TASK_TYPE == 'rubric'
+        if: steps.resolve.outputs.has_task == 'true'
         run: |
+          if [ "$TASK_TYPE" != "rubric" ]; then
+            exit 0
+          fi
           npm install --no-save --package-lock=false playwright@1.55.0
           npx playwright install --with-deps chromium
       - name: Execute bounded task
