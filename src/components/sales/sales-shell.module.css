@@ -1,0 +1,85 @@
+.workspace {
+  min-width: 0;
+}
+
+.contextBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 52px;
+  margin: -4px 0 38px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.identity {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  min-width: max-content;
+}
+
+.identity span {
+  color: var(--paper-2);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.identity strong {
+  color: var(--paper-0);
+  font-size: 14px;
+  font-weight: 620;
+}
+
+.subnav {
+  display: flex;
+  min-width: 0;
+  gap: 4px;
+}
+
+.subnav a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 11px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--paper-2);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.subnav a:hover {
+  color: var(--paper-0);
+  background: var(--ink-2);
+}
+
+.subnav a[data-active="true"] {
+  color: var(--paper-0);
+  background: var(--ink-2);
+  border-color: var(--line-soft);
+}
+
+@media (max-width: 760px) {
+  .contextBar {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+
+  .subnav {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .subnav::-webkit-scrollbar { display: none; }
+}
