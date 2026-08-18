@@ -15,7 +15,7 @@ test("Control abre directamente y muestra el centro de mando", async ({ page }) 
 
 test("la prospección diaria admite flagships independientes el mismo día", async ({ page }) => {
   await openControl(page);
-  await page.getByRole("link", { name: "Prospectos" }).click();
+  await page.getByRole("link", { name: "Prospectos", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Prospección diaria" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Oportunidades cualificadas" })).toBeVisible();
   await expect(page.getByText("flagships objetivo al día", { exact: true })).toBeVisible();
@@ -23,30 +23,30 @@ test("la prospección diaria admite flagships independientes el mismo día", asy
 
 test("Ventas funciona como CRM operativo dentro de Control", async ({ page }) => {
   await openControl(page);
-  await page.getByRole("link", { name: "Ventas" }).click();
-  await expect(page.getByRole("heading", { name: "Ventas" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Nuevo prospecto" })).toBeVisible();
+  await page.getByRole("link", { name: "Ventas", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Ventas", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Nuevo prospecto", exact: true })).toBeVisible();
 
-  await page.getByRole("link", { name: "Nuevo prospecto" }).click();
-  await expect(page.getByRole("heading", { name: "Nuevo prospecto" })).toBeVisible();
+  await page.getByRole("link", { name: "Nuevo prospecto", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Nuevo prospecto", exact: true })).toBeVisible();
   await expect(page.getByLabel("Nombre del negocio")).toBeVisible();
   await expect(page.getByLabel("Precio / presupuesto")).toBeVisible();
   await expect(page.getByLabel("Mantenimiento mensual")).toBeVisible();
 
-  await page.getByRole("link", { name: "Pipeline" }).click();
-  await expect(page.getByRole("heading", { name: "Pipeline" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Configurar pipeline" })).toBeVisible();
-  await page.getByRole("link", { name: "Configurar pipeline" }).click();
-  await expect(page.getByRole("heading", { name: "Pipeline" })).toBeVisible();
+  await page.getByRole("link", { name: "Pipeline", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Pipeline", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Configurar pipeline", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Configurar pipeline", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Pipeline", exact: true })).toBeVisible();
   await expect(page.getByText("Nombre visible", { exact: true }).first()).toBeVisible();
 });
 
 test("el estándar de calidad y el control de proyecto son navegables", async ({ page }) => {
   await openControl(page);
-  await page.getByRole("link", { name: "Calidad" }).click();
+  await page.getByRole("link", { name: "Calidad", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Estándar de Calidad Archic" })).toBeVisible();
   await expect(page.getByText("88").first()).toBeVisible();
-  await page.getByRole("link", { name: "Proyectos" }).click();
+  await page.getByRole("link", { name: "Proyectos", exact: true }).click();
   await page.getByRole("link", { name: /Marbella For Sale/ }).click();
   await expect(page.getByText("Sin bloqueos duros de calidad activos")).toBeVisible();
   await expect(page.getByText(/Too many mobile tap targets/).first()).toBeVisible();
@@ -71,10 +71,10 @@ test("el endpoint de salud expone el estándar activo", async ({ request }) => {
 
 test("la cola de automatización y la preparación de despliegues son visibles", async ({ page }) => {
   await openControl(page);
-  await page.getByRole("link", { name: "Automatización" }).click();
+  await page.getByRole("link", { name: "Automatización", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Cola de agentes" })).toBeVisible();
   await expect(page.getByText("Política de reintentos")).toBeVisible();
-  await page.getByRole("link", { name: "Despliegues" }).click();
+  await page.getByRole("link", { name: "Despliegues", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Vistas previas y despliegues" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Preparación para producción" })).toBeVisible();
 });
