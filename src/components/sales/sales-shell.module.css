@@ -46,15 +46,15 @@
   align-items: center;
   padding: 8px 11px;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--control-interactive-radius);
   color: var(--paper-2);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   transition:
-    color var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--control-interactive-ease),
+    background var(--duration-fast) var(--control-interactive-ease),
+    border-color var(--duration-fast) var(--control-interactive-ease);
 }
 
 .subnav a:hover {
