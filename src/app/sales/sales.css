@@ -1,28 +1,5 @@
 .sales-workspace {
-  --crm-bg: #f5f1e8;
-  --crm-surface: #fffdf8;
-  --crm-surface-muted: #f8f4eb;
-  --crm-surface-strong: #eee8dc;
-  --crm-text: #20251f;
-  --crm-text-soft: #515a50;
-  --crm-text-muted: #7c8379;
-  --crm-border: #e1dbcf;
-  --crm-border-strong: #d1cabd;
-  --crm-accent: #65725f;
-  --crm-accent-strong: #4f5d4b;
-  --crm-accent-soft: #e7ece3;
-  --crm-blue: #607488;
-  --crm-blue-soft: #e8edf1;
-  --crm-amber: #9a702f;
-  --crm-amber-soft: #f5ead7;
-  --crm-danger: #a2554c;
-  --crm-danger-soft: #f6e6e2;
-  --crm-success: #57705b;
-  --crm-success-soft: #e5eee5;
-  --crm-shadow: 0 12px 34px rgba(66, 57, 43, .07);
-  --crm-shadow-hover: 0 15px 42px rgba(66, 57, 43, .11);
-
-  /* Remap Control tokens inside CRM so every existing control becomes light. */
+  /* Remap Control tokens inside CRM so every existing commercial control becomes light. */
   --ink-0: var(--crm-bg);
   --ink-1: var(--crm-surface);
   --ink-2: var(--crm-surface-muted);
@@ -34,12 +11,13 @@
   --line-strong: var(--crm-border-strong);
   --signal: var(--crm-accent);
   --signal-strong: var(--crm-accent-strong);
-  --signal-ink: #fffdf8;
+  --signal-ink: var(--crm-surface);
   --warning: var(--crm-amber);
   --danger: var(--crm-danger);
 
   min-width: 0;
   color: var(--crm-text);
+  color-scheme: light;
 }
 
 .sales-workspace * { box-sizing: border-box; }
@@ -95,7 +73,7 @@
   border: 1px solid var(--crm-accent);
   border-radius: 11px;
   background: var(--crm-accent);
-  color: #fffdf8;
+  color: var(--crm-surface);
   cursor: pointer;
   font: inherit;
   font-size: 12px;
@@ -129,15 +107,15 @@
 .sales-alert {
   margin-bottom: 22px;
   padding: 13px 15px;
-  border: 1px solid #ead7b8;
+  border: 1px solid var(--crm-amber-border);
   border-radius: 12px;
   background: var(--crm-amber-soft);
-  color: #70552d;
+  color: var(--crm-amber-text);
   font-size: 12px;
   line-height: 1.5;
 }
 
-.sales-alert strong { color: #57401f; }
+.sales-alert strong { color: var(--crm-amber-text); }
 
 .sales-badge {
   width: max-content;
@@ -158,28 +136,28 @@
 .sales-badge[data-stage="researched"],
 .sales-badge[data-stage="prototype"],
 .sales-badge[data-stage="contacted"] {
-  border-color: #cfd8df;
+  border-color: var(--crm-blue-border);
   background: var(--crm-blue-soft);
-  color: #536a7d;
+  color: var(--crm-blue-text);
 }
 
 .sales-badge[data-stage="interested"],
 .sales-badge[data-stage="meeting"],
 .sales-badge[data-stage="proposal"],
 .sales-badge[data-stage="negotiation"] {
-  border-color: #d4dfcf;
+  border-color: var(--crm-accent-border);
   background: var(--crm-accent-soft);
   color: var(--crm-accent-strong);
 }
 
 .sales-badge[data-stage="won"] {
-  border-color: #cad9ca;
+  border-color: var(--crm-success-border);
   background: var(--crm-success-soft);
-  color: #49634e;
+  color: var(--crm-success-text);
 }
 
 .sales-badge[data-stage="lost"] {
-  border-color: #e3c8c3;
+  border-color: var(--crm-danger-border);
   background: var(--crm-danger-soft);
   color: var(--crm-danger);
 }
@@ -196,7 +174,7 @@
   border: 1px solid var(--crm-border);
   border-radius: 14px;
   background: var(--crm-surface);
-  box-shadow: var(--crm-shadow);
+  box-shadow: var(--crm-shadow, 0 12px 34px rgba(66, 57, 43, .07));
 }
 
 .sales-stat strong { display: block; color: var(--crm-text); font-size: 28px; font-weight: 610; letter-spacing: -.04em; line-height: 1; }
@@ -213,7 +191,7 @@
   border: 1px solid var(--crm-border);
   border-radius: 14px;
   background: var(--crm-surface);
-  box-shadow: var(--crm-shadow);
+  box-shadow: var(--crm-shadow, 0 12px 34px rgba(66, 57, 43, .07));
 }
 
 .sales-task {
@@ -262,7 +240,7 @@
   border: 1px solid var(--crm-border);
   border-radius: 15px;
   background: var(--crm-surface);
-  box-shadow: var(--crm-shadow);
+  box-shadow: var(--crm-shadow, 0 12px 34px rgba(66, 57, 43, .07));
 }
 
 .sales-panel h2 { margin: 0 0 14px; color: var(--crm-text); font-size: 16px; font-weight: 680; letter-spacing: -.02em; }
@@ -353,7 +331,7 @@
 }
 
 .sales-workspace input::placeholder,
-.sales-workspace textarea::placeholder { color: #9b9f97; }
+.sales-workspace textarea::placeholder { color: var(--crm-placeholder); }
 
 .sales-workspace input:focus,
 .sales-workspace select:focus,
