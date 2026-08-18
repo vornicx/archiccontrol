@@ -1,26 +1,27 @@
 import { createLeadAction } from "@/app/sales/actions";
 import { LeadForm } from "@/components/sales/lead-form";
 import { Topbar } from "@/components/topbar";
-import { getSalesData, getSalesPipelineStages } from "@/sales/repository";
+import { salesOperationsConfigured } from "@/sales/operations-readiness";
+import { getSalesPipelineStages } from "@/sales/repository";
 
 export default async function NewSalesLeadPage() {
-  const [{ persistenceConfigured }, stages] = await Promise.all([
-    getSalesData(),
+  const [operationsConfigured, stages] = await Promise.all([
+    salesOperationsConfigured(),
     getSalesPipelineStages(),
   ]);
 
   return (
     <>
       <Topbar eyebrow="Comercial" title="Nuevo prospecto" meta="Alta manual" />
-      {!persistenceConfigured ? (
-        <div className="sales-alert"><strong>Falta persistencia.</strong> Aplica las migraciones de Ventas y configura DATABASE_URL para poder crear oportunidades.</div>
+      {!operationsConfigured ? (
+        <div className="sales-alert"><strong>CRM pendiente de migración.</strong> Aplica la migración 006 de Ventas para activar altas manuales, precios, contactos y configuración del pipeline.</div>
       ) : null}
       <LeadForm
         action={createLeadAction}
         stages={stages}
         submitLabel="Crear prospecto"
         includeInitialContact
-        persistenceConfigured={persistenceConfigured}
+        persistenceConfigured={operationsConfigured}
       />
     </>
   );
