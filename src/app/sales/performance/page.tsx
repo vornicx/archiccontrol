@@ -32,10 +32,9 @@ export default async function SalesPerformancePage() {
             const value = stageLeads.reduce((sum, lead) => sum + (lead.quotedPrice ?? lead.estimatedValue ?? 0), 0);
             return (
               <div className="sales-funnel-row" key={stage.key}>
-                <span>{stage.label}</span>
+                <span>{stage.label} · {money.format(value)}</span>
                 <div className="sales-funnel-track"><div className="sales-funnel-fill" style={{ width: `${Math.max(stageLeads.length ? 4 : 0, (stageLeads.length / maxStageCount) * 100)}%` }} /></div>
                 <strong>{stageLeads.length}</strong>
-                <span>{money.format(value)}</span>
               </div>
             );
           })}
