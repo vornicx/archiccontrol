@@ -11,6 +11,7 @@ test("Control abre directamente y muestra el centro de mando", async ({ page }) 
   await expect(page.getByRole("heading", { name: "Decisiones que sí necesitan criterio humano" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ratificar el Estándar de Calidad Archic v1.0" })).toBeVisible();
   await expect(page.getByText("La Bocana", { exact: true })).toBeVisible();
+  await expect(page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).resolves.toBe("light");
 });
 
 test("la prospección diaria separa estimación automática y decisión comercial", async ({ page }) => {
@@ -67,17 +68,34 @@ test("el estándar de calidad y la rúbrica ejecutable son navegables", async ({
   await expect(page.getByText(/Too many mobile tap targets/).first()).toBeVisible();
 });
 
-test("las vistas principales móviles no tienen overflow horizontal", async ({ page }, testInfo) => {
+test("todas las vistas principales móviles comparten shell claro y no tienen overflow", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("mobile"), "comprobación exclusiva de móvil");
   await openControl(page);
-  for (const path of ["/", "/prospects", "/sales", "/sales/opportunities", "/quality"]) {
+  const paths = [
+    "/",
+    "/decisions",
+    "/prospects",
+    "/sales",
+    "/sales/opportunities",
+    "/projects",
+    "/quality",
+    "/automation",
+    "/deployments",
+    "/runs",
+    "/settings",
+  ];
+
+  for (const path of paths) {
     await page.goto(path);
-    const dimensions = await page.evaluate(() => ({
+    const state = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
+      colorScheme: getComputedStyle(document.documentElement).colorScheme,
     }));
-    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+    expect(state.scrollWidth).toBeLessThanOrEqual(state.clientWidth);
+    expect(state.colorScheme).toBe("light");
   }
+
   await expect(page.getByRole("navigation", { name: "Navegación principal" })).toBeVisible();
 });
 

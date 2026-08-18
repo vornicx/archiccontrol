@@ -1,23 +1,19 @@
 .workspace {
   min-width: 0;
-  margin: -22px -22px -36px;
-  padding: 22px 22px 42px;
-  border-radius: 18px 18px 0 0;
-  background: var(--crm-bg);
 }
 
 .contextBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 22px;
-  min-height: 62px;
-  margin: 0 0 34px;
-  padding: 8px 10px 8px 8px;
-  border: 1px solid var(--crm-border);
-  border-radius: 15px;
-  background: rgba(255, 253, 248, .92);
-  box-shadow: 0 8px 24px rgba(66, 57, 43, .05);
+  gap: 18px;
+  min-height: 58px;
+  margin: 0 0 28px;
+  padding: 7px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-1);
+  box-shadow: var(--shadow-soft);
 }
 
 .identity {
@@ -28,26 +24,23 @@
   padding-right: 8px;
 }
 
-.identity > div {
-  display: grid;
-  gap: 1px;
-}
+.identity > div { display: grid; gap: 1px; }
 
 .mark {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: var(--crm-accent);
-  color: var(--crm-surface) !important;
-  font-size: 13px !important;
+  background: var(--signal);
+  color: var(--signal-ink) !important;
+  font-size: 12px !important;
   font-weight: 800 !important;
   letter-spacing: -.02em !important;
 }
 
 .identity div span {
-  color: var(--crm-text-muted);
+  color: var(--paper-2);
   font-size: 8px;
   font-weight: 750;
   letter-spacing: .12em;
@@ -55,15 +48,15 @@
 }
 
 .identity strong {
-  color: var(--crm-text);
-  font-size: 14px;
+  color: var(--paper-0);
+  font-size: 13px;
   font-weight: 690;
 }
 
 .navigation {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -73,88 +66,60 @@
   gap: 3px;
   padding: 3px;
   border-radius: 11px;
-  background: var(--crm-surface-muted);
+  background: var(--ink-2);
 }
 
 .subnav a,
 .settings {
-  min-height: 38px;
+  min-height: 37px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 8px 11px;
   border: 1px solid transparent;
   border-radius: 9px;
-  color: var(--crm-text-muted);
-  font-size: 11px;
-  font-weight: 650;
+  color: var(--paper-2);
+  font-size: 10px;
+  font-weight: 680;
   text-decoration: none;
   white-space: nowrap;
-  transition: color 140ms var(--control-interactive-ease), background 140ms var(--control-interactive-ease), border-color 140ms var(--control-interactive-ease), box-shadow 140ms var(--control-interactive-ease);
+  transition: color var(--duration-fast) var(--control-interactive-ease), background var(--duration-fast) var(--control-interactive-ease), border-color var(--duration-fast) var(--control-interactive-ease), box-shadow var(--duration-fast) var(--control-interactive-ease);
 }
 
 .subnav a:hover,
 .settings:hover {
-  color: var(--crm-text);
-  background: var(--crm-surface);
+  color: var(--paper-0);
+  background: var(--ink-1);
 }
 
 .subnav a[data-active="true"] {
-  color: var(--crm-text);
-  background: var(--crm-surface);
-  border-color: var(--crm-border);
-  box-shadow: 0 3px 10px rgba(66, 57, 43, .07);
+  color: var(--paper-0);
+  background: var(--ink-1);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-soft);
 }
 
 .settings {
-  border-color: var(--crm-border);
-  color: var(--crm-text-soft);
-  background: var(--crm-surface);
+  border-color: var(--line-soft);
+  color: var(--paper-1);
+  background: var(--ink-1);
 }
 
 .settings[data-active="true"] {
-  border-color: var(--crm-accent);
-  background: var(--crm-accent-soft);
-  color: var(--crm-accent-strong);
+  border-color: color-mix(in srgb, var(--signal) 28%, var(--line-soft));
+  background: var(--signal-soft);
+  color: var(--signal-strong);
 }
 
 @media (max-width: 900px) {
-  .contextBar {
-    display: grid;
-    gap: 10px;
-  }
-
-  .navigation {
-    overflow: hidden;
-  }
-
-  .subnav {
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
+  .contextBar { display: grid; gap: 10px; }
+  .navigation { overflow: hidden; }
+  .subnav { overflow-x: auto; scrollbar-width: none; }
   .subnav::-webkit-scrollbar { display: none; }
 }
 
 @media (max-width: 640px) {
-  .workspace {
-    margin: -18px -14px -28px;
-    padding: 14px 14px 34px;
-    border-radius: 0;
-  }
-
-  .contextBar {
-    margin-bottom: 26px;
-    padding: 8px;
-  }
-
-  .navigation {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .subnav a,
-  .settings {
-    min-height: 40px;
-  }
+  .contextBar { margin-bottom: 24px; padding: 7px; }
+  .navigation { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .subnav a, .settings { min-height: 40px; }
 }

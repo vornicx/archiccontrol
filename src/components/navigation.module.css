@@ -1,6 +1,6 @@
 .navigation {
   display: grid;
-  gap: 22px;
+  gap: 20px;
 }
 
 .section {
@@ -9,15 +9,16 @@
 }
 
 .label {
-  margin: 0 10px 7px;
+  margin: 0 10px 6px;
   color: var(--paper-2);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .15em;
+  font-weight: 760;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 
 .link {
+  position: relative;
   min-height: 42px;
   display: flex;
   align-items: center;
@@ -26,44 +27,50 @@
   padding: 9px 11px;
   border: 1px solid transparent;
   border-radius: var(--control-interactive-radius);
-  color: var(--paper-2);
-  font-size: 13px;
-  font-weight: 580;
+  color: var(--paper-1);
+  font-size: 12px;
+  font-weight: 650;
   transition:
     color var(--duration-fast) var(--control-interactive-ease),
     background var(--duration-fast) var(--control-interactive-ease),
-    border-color var(--duration-fast) var(--control-interactive-ease);
+    border-color var(--duration-fast) var(--control-interactive-ease),
+    transform var(--duration-fast) var(--control-interactive-ease),
+    box-shadow var(--duration-fast) var(--control-interactive-ease);
 }
 
 .link:hover {
   color: var(--paper-0);
-  background: color-mix(in srgb, var(--ink-2) 72%, transparent);
+  background: var(--ink-2);
+  transform: translateX(1px);
 }
 
 .link[data-active="true"] {
   color: var(--paper-0);
-  background: var(--ink-2);
+  background: var(--ink-1);
   border-color: var(--line-soft);
+  box-shadow: var(--shadow-soft);
 }
 
 .marker {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   flex: 0 0 auto;
   border-radius: 50%;
+  border: 1px solid transparent;
   background: transparent;
 }
 
 .link[data-active="true"] .marker {
+  border-color: color-mix(in srgb, var(--signal) 24%, transparent);
   background: var(--signal-strong);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--signal-strong) 58%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--signal) 10%, transparent);
 }
 
 @media (max-width: 760px) {
   .navigation {
     display: flex;
     min-width: 0;
-    gap: 3px;
+    gap: 4px;
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -78,5 +85,6 @@
     padding: 8px 10px;
   }
 
+  .link[data-active="true"] { box-shadow: none; }
   .marker { display: none; }
 }
