@@ -79,7 +79,7 @@ export default async function OverviewPage() {
           <div className="metric-value">{actionableDecisions.length}<small>{actionableDecisions.length === 1 ? " decisión" : " decisiones"}</small></div>
         </div>
         <div className="metric">
-          <span className="metric-label">Comercial</span>
+          <span className="metric-label">CRM</span>
           <div className="metric-value">{commercialActions.length}<small> acciones</small></div>
         </div>
         <div className="metric">
@@ -123,10 +123,10 @@ export default async function OverviewPage() {
           <section className="section" aria-labelledby="commercial-title">
             <div className="section-head">
               <div>
-                <p className="eyebrow">Comercial</p>
+                <p className="eyebrow">CRM</p>
                 <h2 className="section-title" id="commercial-title">Siguientes movimientos</h2>
               </div>
-              <Link className={styles.sectionLink} href="/sales">Ver ventas</Link>
+              <Link className={styles.sectionLink} href="/sales">Abrir CRM</Link>
             </div>
             <div className={styles.priorityList}>
               {commercialActions.slice(0, 4).map((lead) => (
