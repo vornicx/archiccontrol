@@ -14,13 +14,13 @@
   background: var(--crm-surface);
   color: inherit;
   text-decoration: none;
-  box-shadow: var(--crm-shadow);
+  box-shadow: 0 12px 34px rgba(66, 57, 43, .07);
   transition: transform 140ms var(--control-interactive-ease), border-color 140ms var(--control-interactive-ease), box-shadow 140ms var(--control-interactive-ease);
 }
 
 .metric[href]:hover {
   border-color: var(--crm-border-strong);
-  box-shadow: var(--crm-shadow-hover);
+  box-shadow: 0 15px 42px rgba(66, 57, 43, .11);
   transform: translateY(-1px);
 }
 
@@ -51,15 +51,15 @@
 }
 
 .metricAlert {
-  border-color: #e7cec7;
-  background: #fffaf8;
+  border-color: var(--crm-danger-border);
+  background: var(--crm-surface-danger);
 }
 
 .metricAlert strong { color: var(--crm-danger); }
 
 .metricFocus {
-  border-color: #d3decf;
-  background: #fbfdf9;
+  border-color: var(--crm-accent-border);
+  background: var(--crm-surface-focus);
 }
 
 .metricFocus strong { color: var(--crm-accent-strong); }
@@ -76,7 +76,7 @@
   border: 1px solid var(--crm-border);
   border-radius: 16px;
   background: var(--crm-surface);
-  box-shadow: var(--crm-shadow);
+  box-shadow: 0 12px 34px rgba(66, 57, 43, .07);
 }
 
 .panelHead,
@@ -139,7 +139,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #9eaa99;
+  background: var(--crm-accent);
 }
 
 .statusOverdue {
@@ -173,7 +173,7 @@
 }
 
 .chevron {
-  color: #a9aca5;
+  color: var(--crm-chevron);
   font-size: 20px;
   line-height: 1;
 }
@@ -190,7 +190,7 @@
   border: 1px solid var(--crm-border);
   border-radius: 16px;
   background: var(--crm-surface);
-  box-shadow: var(--crm-shadow);
+  box-shadow: 0 12px 34px rgba(66, 57, 43, .07);
 }
 
 .sideHead {
@@ -235,9 +235,9 @@
   font-size: 9px;
 }
 
-.attentionDanger { background: var(--crm-danger-soft); border-color: #e8d0ca; }
-.attentionWarning { background: var(--crm-amber-soft); border-color: #eadbc1; }
-.attentionFocus { background: var(--crm-accent-soft); border-color: #d5dfd1; }
+.attentionDanger { background: var(--crm-danger-soft); border-color: var(--crm-danger-border); }
+.attentionWarning { background: var(--crm-amber-soft); border-color: var(--crm-amber-border); }
+.attentionFocus { background: var(--crm-accent-soft); border-color: var(--crm-accent-border); }
 
 .count {
   align-self: center;
