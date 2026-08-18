@@ -12,12 +12,12 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
             <div className="project-repo">{project.repositoryFullName}</div>
           </div>
           <div>
-            <div className="score">{project.score?.toFixed(1) ?? "—"} <small>/100</small></div>
-            <div className="row-meta">Benchmark</div>
-          </div>
-          <div>
             <div className="score">{project.archicScore?.toFixed(1) ?? "—"} <small>/100</small></div>
             <div className="row-meta">{project.archicLevel ?? "Archic pendiente"}</div>
+          </div>
+          <div>
+            <div className="score">{project.score?.toFixed(1) ?? "—"} <small>/100</small></div>
+            <div className="row-meta">Benchmark</div>
           </div>
           <div>
             <StatusPill status={project.gateStatus} />
