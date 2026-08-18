@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { updateSalesContact } from "@/sales/contact-operations";
+import { recordSalesActivity, updateSalesNextAction, type SalesActivityType } from "@/sales/crm-operations";
 import {
   addSalesContact,
   createSalesLead,
@@ -113,6 +114,7 @@ function readLeadInput(formData: FormData, fallback?: { stage: SalesStage; owner
 function revalidateSales(leadId?: string) {
   revalidatePath("/");
   revalidatePath("/sales");
+  revalidatePath("/sales/opportunities");
   revalidatePath("/sales/pipeline");
   revalidatePath("/sales/follow-ups");
   revalidatePath("/sales/performance");
@@ -162,6 +164,35 @@ export async function updateStageAction(formData: FormData): Promise<void> {
   const rawStage = text(formData, "stage") as SalesStage | null;
   if (!leadId || !rawStage || !salesStages.includes(rawStage)) return;
   await updateSalesLeadStage(leadId, rawStage, "vadim");
+  revalidateSales(leadId);
+}
+
+export async function updateNextActionAction(formData: FormData): Promise<void> {
+  const leadId = text(formData, "leadId");
+  if (!leadId) return;
+  await updateSalesNextAction({
+    leadId,
+    nextAction: text(formData, "nextAction"),
+    nextActionOwner: ownerValue(formData, "nextActionOwner", "antero"),
+    nextActionAt: madridLocalToIso(text(formData, "nextActionAt")),
+    actor: ownerValue(formData, "actor", "vadim"),
+  });
+  revalidateSales(leadId);
+}
+
+export async function recordActivityAction(formData: FormData): Promise<void> {
+  const leadId = text(formData, "leadId");
+  const note = text(formData, "note");
+  const rawType = text(formData, "type");
+  const allowed: SalesActivityType[] = ["call", "message", "email", "note"];
+  const type = allowed.includes(rawType as SalesActivityType) ? rawType as SalesActivityType : "note";
+  if (!leadId || !note) return;
+  await recordSalesActivity({
+    leadId,
+    type,
+    note,
+    actor: ownerValue(formData, "actor", "vadim"),
+  });
   revalidateSales(leadId);
 }
 
