@@ -1,57 +1,97 @@
 import Link from "next/link";
-import { getSalesData, getSalesPipelineStages } from "@/sales/repository";
-import { salesStageLabels } from "@/sales/types";
+import { getSalesClock, getSalesData, getSalesPipelineStages } from "@/sales/repository";
+import styles from "./dashboard.module.css";
 
 const money = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
-const when = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "short", hour: "2-digit", minute: "2-digit" });
+const when = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
-export default async function SalesTodayPage() {
-  const [{ leads, persistenceConfigured }, stages] = await Promise.all([
+export default async function SalesDashboardPage() {
+  const [{ leads, persistenceConfigured }, stages, currentTime] = await Promise.all([
     getSalesData(),
     getSalesPipelineStages(),
+    getSalesClock(),
   ]);
-  const stageLabels = new Map(stages.map((stage) => [stage.key, stage.label]));
+  const now = new Date(currentTime).getTime();
+  const stageMap = new Map(stages.map((stage) => [stage.key, stage]));
   const active = leads.filter((lead) => !["won", "lost"].includes(lead.stage));
-  const anteroQueue = active.filter((lead) => lead.nextActionOwner === "antero" && lead.nextAction).sort((a,b) => String(a.nextActionAt).localeCompare(String(b.nextActionAt)));
-  const proposals = active.filter((lead) => ["proposal", "negotiation"].includes(lead.stage)).length;
   const pipelineValue = active.reduce((sum, lead) => sum + (lead.quotedPrice ?? lead.estimatedValue ?? 0), 0);
+  const weightedValue = active.reduce((sum, lead) => {
+    const amount = lead.quotedPrice ?? lead.estimatedValue ?? 0;
+    return sum + amount * ((stageMap.get(lead.stage)?.probability ?? 0) / 100);
+  }, 0);
+  const overdue = active.filter((lead) => lead.nextActionAt && new Date(lead.nextActionAt).getTime() < now);
+  const noNext = active.filter((lead) => !lead.nextAction);
+  const closing = active.filter((lead) => ["proposal", "negotiation"].includes(lead.stage));
+  const queue = active
+    .filter((lead) => lead.nextAction)
+    .sort((a, b) => {
+      const aTime = a.nextActionAt ? new Date(a.nextActionAt).getTime() : Number.MAX_SAFE_INTEGER;
+      const bTime = b.nextActionAt ? new Date(b.nextActionAt).getTime() : Number.MAX_SAFE_INTEGER;
+      return aTime - bTime;
+    })
+    .slice(0, 8);
+
   return (
     <>
       <header className="sales-header">
-        <div><p className="sales-eyebrow">Comercial · Prioridades de hoy</p><h1 className="sales-title">Ventas</h1><p className="sales-subtitle">Qué hay que mover hoy, quién lo tiene asignado y cuánto valor comercial está en juego.</p></div>
-        <div className="sales-actions"><span className="sales-live"><strong>{active.length}</strong> oportunidades activas</span><Link className="sales-button" href="/sales/new">Nuevo prospecto</Link></div>
+        <div>
+          <p className="sales-eyebrow">CRM · Centro comercial</p>
+          <h1 className="sales-title">Resumen</h1>
+          <p className="sales-subtitle">El estado real de ventas: dinero, urgencias, siguientes movimientos y oportunidades cerca de cerrar.</p>
+        </div>
+        <div className="sales-actions">
+          <Link className="sales-button" href="/sales/new">Nuevo prospecto</Link>
+          <Link className="sales-button secondary" href="/sales/opportunities">Ver cartera</Link>
+        </div>
       </header>
-      {!persistenceConfigured ? <div className="sales-alert"><strong>Modo de prueba.</strong> La interfaz ya está montada con vuestro pipeline actual; cuando apliquemos las migraciones, las llamadas, ediciones y seguimientos quedarán guardados.</div> : null}
-      <section className="sales-summary" aria-label="Resumen comercial">
-        <div className="sales-stat"><strong>{anteroQueue.length}</strong><span>acciones de Antero</span></div>
-        <div className="sales-stat"><strong>{active.filter((lead) => lead.stage === "contacted").length}</strong><span>esperando respuesta</span></div>
-        <div className="sales-stat"><strong>{proposals}</strong><span>propuestas abiertas</span></div>
-        <div className="sales-stat"><strong>{money.format(pipelineValue)}</strong><span>pipeline comercial</span></div>
+
+      {!persistenceConfigured ? <div className="sales-alert"><strong>Modo de prueba.</strong> El CRM está renderizando datos de ejemplo porque la persistencia comercial no está disponible.</div> : null}
+
+      <section className={styles.metrics} aria-label="Resumen comercial">
+        <div className={styles.metric}><span>Pipeline abierto</span><strong>{money.format(pipelineValue)}</strong><small>{active.length} oportunidades activas</small></div>
+        <div className={styles.metric}><span>Pipeline ponderado</span><strong>{money.format(weightedValue)}</strong><small>según probabilidad de cada etapa</small></div>
+        <div className={styles.metric}><span>Acciones vencidas</span><strong>{overdue.length}</strong><small>{overdue.length ? "requieren movimiento" : "sin deuda comercial"}</small></div>
+        <div className={styles.metric}><span>Cerca de cierre</span><strong>{closing.length}</strong><small>propuesta o negociación</small></div>
       </section>
-      <section className="sales-section">
-        <div className="sales-section-head"><h2>Prioridad de Antero</h2><span>ordenada por siguiente acción</span></div>
-        <div className="sales-task-list">
-          {anteroQueue.map((lead, index) => (
-            <Link className="sales-task" href={`/sales/leads/${lead.id}`} key={lead.id}>
-              <span className="sales-rank">{String(index + 1).padStart(2,"0")}</span>
-              <div><span className="sales-badge" data-stage={lead.stage}>{stageLabels.get(lead.stage) ?? salesStageLabels[lead.stage]}</span><h3>{lead.name}</h3><p>{lead.city || "—"} · {lead.category || "Negocio"}{lead.quotedPrice != null ? ` · ${money.format(lead.quotedPrice)}` : lead.estimatedValue != null ? ` · ~${money.format(lead.estimatedValue)}` : ""}</p></div>
-              <div className="sales-next"><strong>{lead.nextAction}</strong><span>{lead.nextActionAt ? when.format(new Date(lead.nextActionAt)) : "Sin fecha"}</span></div>
-              <span className="sales-score">{lead.score ?? "—"}</span>
-            </Link>
-          ))}
-          {!anteroQueue.length ? <div className="sales-alert">No hay acciones comerciales asignadas a Antero.</div> : null}
-        </div>
-      </section>
-      <section className="sales-section">
-        <div className="sales-section-head"><h2>Prioridad de Vadim</h2><span>trabajo que desbloquea ventas</span></div>
-        <div className="sales-task-list">
-          {active.filter((lead) => lead.nextActionOwner === "vadim" && lead.nextAction).map((lead) => (
-            <Link className="sales-task" href={`/sales/leads/${lead.id}`} key={lead.id}>
-              <span className="sales-rank">→</span><div><span className="sales-badge" data-stage={lead.stage}>{stageLabels.get(lead.stage) ?? salesStageLabels[lead.stage]}</span><h3>{lead.name}</h3><p>{lead.city || "—"} · {lead.category || "Negocio"}</p></div><div className="sales-next"><strong>{lead.nextAction}</strong><span>Vadim</span></div><span className="sales-score">{lead.score ?? "—"}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+
+      <div className={styles.grid}>
+        <section className={styles.panel}>
+          <div className={styles.panelHead}>
+            <h2>Cola comercial</h2>
+            <Link href="/sales/follow-ups">Abrir agenda</Link>
+          </div>
+          <div className={styles.queue}>
+            {queue.map((lead) => {
+              const isOverdue = Boolean(lead.nextActionAt && new Date(lead.nextActionAt).getTime() < now);
+              return (
+                <Link href={`/sales/leads/${lead.id}`} className={styles.queueItem} key={lead.id}>
+                  <div className={styles.queueMain}><strong>{lead.name}</strong><span>{lead.city || "—"} · {stageMap.get(lead.stage)?.label ?? lead.stage}</span></div>
+                  <div className={styles.queueMeta}><strong>{lead.nextActionOwner === "antero" ? "Antero" : "Vadim"}</strong><span>{lead.quotedPrice != null ? money.format(lead.quotedPrice) : lead.estimatedValue != null ? `~${money.format(lead.estimatedValue)}` : "Sin valor"}</span></div>
+                  <div className={styles.queueAction}><strong>{lead.nextAction}</strong><span className={isOverdue ? styles.danger : undefined}>{lead.nextActionAt ? when.format(new Date(lead.nextActionAt)) : "Sin fecha"}{isOverdue ? " · vencida" : ""}</span></div>
+                </Link>
+              );
+            })}
+            {!queue.length ? <div className={styles.empty}>No hay siguientes acciones abiertas.</div> : null}
+          </div>
+        </section>
+
+        <aside>
+          <div className={styles.attention}>
+            <Link href="/sales/opportunities?attention=overdue" className={styles.attentionCard}><div><strong>Acciones vencidas</strong><span>Conversaciones que ya deberían haberse movido</span></div><span className={styles.count}>{overdue.length}</span></Link>
+            <Link href="/sales/opportunities?attention=no-next" className={styles.attentionCard}><div><strong>Sin siguiente acción</strong><span>Oportunidades sin dueño operativo claro</span></div><span className={styles.count}>{noNext.length}</span></Link>
+            <Link href="/sales/opportunities?stage=proposal" className={styles.attentionCard}><div><strong>Propuestas</strong><span>Negocios con precio sobre la mesa</span></div><span className={styles.count}>{active.filter((lead) => lead.stage === "proposal").length}</span></Link>
+            <Link href="/sales/opportunities?stage=negotiation" className={styles.attentionCard}><div><strong>Negociación</strong><span>Prioridad máxima de cierre</span></div><span className={styles.count}>{active.filter((lead) => lead.stage === "negotiation").length}</span></Link>
+          </div>
+
+          <div className={styles.stageList} aria-label="Distribución del pipeline">
+            {stages.filter((stage) => stage.active && !stage.terminal).map((stage) => {
+              const stageLeads = active.filter((lead) => lead.stage === stage.key);
+              const value = stageLeads.reduce((sum, lead) => sum + (lead.quotedPrice ?? lead.estimatedValue ?? 0), 0);
+              return <div className={styles.stageRow} key={stage.key}><strong>{stage.label}</strong><span>{stageLeads.length}</span><span>{money.format(value)}</span></div>;
+            })}
+          </div>
+        </aside>
+      </div>
     </>
   );
 }
