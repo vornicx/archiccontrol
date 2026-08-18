@@ -5,25 +5,45 @@ async function openControl(page: import("@playwright/test").Page) {
   await expect(page).toHaveURL("/");
 }
 
-test("Control abre directamente y muestra el límite de decisión", async ({ page }) => {
+test("Control abre directamente y muestra el centro de mando", async ({ page }) => {
   await openControl(page);
-  await expect(page.getByRole("heading", { name: "Resumen operativo" })).toBeVisible();
-  await expect(page.getByText("Necesita a Vadim", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hoy en Archic" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Decisiones que sí necesitan criterio humano" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ratificar el Estándar de Calidad Archic v1.0" })).toBeVisible();
   await expect(page.getByText("La Bocana", { exact: true })).toBeVisible();
 });
 
 test("la prospección diaria admite flagships independientes el mismo día", async ({ page }) => {
   await openControl(page);
-  await page.getByRole("link", { name: "Prospección" }).click();
+  await page.getByRole("link", { name: "Prospectos" }).click();
   await expect(page.getByRole("heading", { name: "Prospección diaria" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Oportunidades cualificadas" })).toBeVisible();
   await expect(page.getByText("flagships objetivo al día", { exact: true })).toBeVisible();
 });
 
+test("Ventas funciona como CRM operativo dentro de Control", async ({ page }) => {
+  await openControl(page);
+  await page.getByRole("link", { name: "Ventas" }).click();
+  await expect(page.getByRole("heading", { name: "Ventas" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Nuevo prospecto" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Nuevo prospecto" }).click();
+  await expect(page.getByRole("heading", { name: "Nuevo prospecto" })).toBeVisible();
+  await expect(page.getByLabel("Nombre del negocio")).toBeVisible();
+  await expect(page.getByLabel("Precio / presupuesto")).toBeVisible();
+  await expect(page.getByLabel("Mantenimiento mensual")).toBeVisible();
+
+  await page.getByRole("link", { name: "Pipeline" }).click();
+  await expect(page.getByRole("heading", { name: "Pipeline" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Configurar pipeline" })).toBeVisible();
+  await page.getByRole("link", { name: "Configurar pipeline" }).click();
+  await expect(page.getByRole("heading", { name: "Pipeline" })).toBeVisible();
+  await expect(page.getByText("Nombre visible", { exact: true }).first()).toBeVisible();
+});
+
 test("el estándar de calidad y el control de proyecto son navegables", async ({ page }) => {
   await openControl(page);
-  await page.getByRole("link", { name: "Estándar de calidad" }).click();
+  await page.getByRole("link", { name: "Calidad" }).click();
   await expect(page.getByRole("heading", { name: "Estándar de Calidad Archic" })).toBeVisible();
   await expect(page.getByText("88").first()).toBeVisible();
   await page.getByRole("link", { name: "Proyectos" }).click();
@@ -49,9 +69,9 @@ test("el endpoint de salud expone el estándar activo", async ({ request }) => {
   await expect(response.json()).resolves.toMatchObject({ ok: true, standardVersion: "1.0.0" });
 });
 
-test("la cola de agentes y la preparación de despliegues son visibles", async ({ page }) => {
+test("la cola de automatización y la preparación de despliegues son visibles", async ({ page }) => {
   await openControl(page);
-  await page.getByRole("link", { name: "Agentes" }).click();
+  await page.getByRole("link", { name: "Automatización" }).click();
   await expect(page.getByRole("heading", { name: "Cola de agentes" })).toBeVisible();
   await expect(page.getByText("Política de reintentos")).toBeVisible();
   await page.getByRole("link", { name: "Despliegues" }).click();
