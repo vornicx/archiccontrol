@@ -13,14 +13,15 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function safeDownloadUrl(value: unknown): string | null {
+function safeZipDownloadUrl(value: unknown): string | null {
   const candidate = text(value);
   if (!candidate) return null;
   try {
     const url = new URL(candidate);
     if (url.protocol !== "https:") return null;
-    if (!["github.com", "raw.githubusercontent.com", "codeload.github.com"].includes(url.hostname)) return null;
-    return url.toString();
+    if (!["github.com", "codeload.github.com"].includes(url.hostname)) return null;
+    const looksLikeZip = url.hostname === "codeload.github.com" || url.pathname.toLowerCase().endsWith(".zip") || url.pathname.includes("/archive/");
+    return looksLikeZip ? url.toString() : null;
   } catch {
     return null;
   }
@@ -36,29 +37,6 @@ function safeCommit(value: unknown): string | null {
   return candidate && /^[a-f0-9]{40}$/i.test(candidate) ? candidate : null;
 }
 
-function safePath(value: unknown): string | null {
-  const candidate = text(value);
-  if (!candidate || candidate.startsWith("/") || candidate.split("/").some((part) => part === "..")) return null;
-  return candidate;
-}
-
-function encodedPath(path: string): string {
-  return path.split("/").map(encodeURIComponent).join("/");
-}
-
-function downloadFilename(name: string, path: string): string {
-  const sourceName = path.split("/").pop() || "prototype";
-  const dot = sourceName.lastIndexOf(".");
-  const extension = dot > 0 ? sourceName.slice(dot) : "";
-  const slug = name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "") || "prospect";
-  return `${slug}-prototype${extension}`;
-}
-
 export async function GET(request: Request) {
   const prospectId = new URL(request.url).searchParams.get("prospectId")?.trim();
   if (!prospectId) return NextResponse.json({ ok: false, error: "prospectId is required" }, { status: 400 });
@@ -67,32 +45,15 @@ export async function GET(request: Request) {
   if (!prospect) return NextResponse.json({ ok: false, error: "Prospect not found" }, { status: 404 });
 
   const prototype = record(prospect.research.prototype);
-  const explicitDownload = safeDownloadUrl(prototype.downloadUrl);
-  if (explicitDownload) return NextResponse.redirect(explicitDownload);
+  const explicitZip = safeZipDownloadUrl(prototype.downloadUrl);
+  if (explicitZip) return NextResponse.redirect(explicitZip);
 
   const repository = safeRepository(prototype.repository) || safeRepository(prospect.repositoryFullName);
   const commit = safeCommit(prototype.commit);
-  const path = safePath(prototype.path);
-
-  if (repository && commit && path) {
-    const rawUrl = `https://raw.githubusercontent.com/${repository}/${commit}/${encodedPath(path)}`;
-    const upstream = await fetch(rawUrl, { cache: "no-store" });
-    if (upstream.ok && upstream.body) {
-      const filename = downloadFilename(prospect.name, path);
-      return new Response(upstream.body, {
-        status: 200,
-        headers: {
-          "Content-Type": upstream.headers.get("content-type") || "application/octet-stream",
-          "Content-Disposition": `attachment; filename="${filename.replace(/[\"\\]/g, "-")}"`,
-          "Cache-Control": "private, no-store",
-        },
-      });
-    }
-  }
 
   if (repository && commit) {
     return NextResponse.redirect(`https://codeload.github.com/${repository}/zip/${commit}`);
   }
 
-  return NextResponse.json({ ok: false, error: "No verified downloadable prototype metadata is available" }, { status: 404 });
+  return NextResponse.json({ ok: false, error: "No verified ZIP snapshot is available" }, { status: 404 });
 }
