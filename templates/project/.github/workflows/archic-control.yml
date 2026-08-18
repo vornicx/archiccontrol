@@ -67,7 +67,7 @@ jobs:
             -X POST "$CONTROL_URL/api/agents/repository-lease" \
             -H "Authorization: Bearer $control_oidc" \
             -H 'Content-Type: application/json' \
-            --data '{"supportedTaskTypes":["autofix"]}')"
+            --data '{"supportedTaskTypes":["autofix","rubric"]}')"
 
           TASK_ID="$(printf '%s' "$lease" | jq -r '.task.id // empty')"
           if [ -z "$TASK_ID" ]; then
@@ -107,6 +107,11 @@ jobs:
             --data "$(jq -nc --arg token "$CALLBACK_TOKEN" --arg url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" '{leaseToken:$token,externalUrl:$url}')"
       - if: steps.resolve.outputs.has_task == 'true'
         run: npm ci --no-audit --no-fund
+      - name: Install visual review browser
+        if: steps.resolve.outputs.has_task == 'true' && env.TASK_TYPE == 'rubric'
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
       - name: Execute bounded task
         id: task
         if: steps.resolve.outputs.has_task == 'true'
