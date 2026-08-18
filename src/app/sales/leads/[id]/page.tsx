@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import {
   addContactAction,
   deleteContactAction,
+  recordActivityAction,
   recordOutcomeAction,
   setPrimaryContactAction,
   updateContactAction,
+  updateNextActionAction,
   updateStageAction,
 } from "@/app/sales/actions";
 import { salesOperationsConfigured } from "@/sales/operations-readiness";
@@ -34,6 +36,21 @@ function whatsappHref(value: string | null): string | null {
   return digits ? `https://wa.me/${digits}` : null;
 }
 
+function madridInputValue(value: string | null): string {
+  if (!value) return "";
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(value));
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
+}
+
 export default async function SalesLeadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [{ lead, persistenceConfigured }, activities, contacts, stages, operationsConfigured] = await Promise.all([
@@ -48,12 +65,13 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
   const stageLabels = new Map(stages.map((stage) => [stage.key, stage.label]));
   const activeStages = stages.filter((stage) => stage.active || stage.key === lead.stage);
   const primaryWhatsapp = whatsappHref(lead.phone);
+  const commercialValue = lead.quotedPrice ?? lead.estimatedValue;
 
   return (
     <>
       <header className="sales-header">
         <div>
-          <p className="sales-eyebrow">{lead.city || "Oportunidad"} · {lead.category || "Negocio"}</p>
+          <p className="sales-eyebrow">CRM · {lead.city || "Oportunidad"} · {lead.category || "Negocio"}</p>
           <h1 className="sales-title">{lead.name}</h1>
           <p className="sales-subtitle">
             <span className="sales-badge" data-stage={lead.stage}>{stageLabels.get(lead.stage) ?? salesStageLabels[lead.stage]}</span>
@@ -63,57 +81,39 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
         </div>
         <div className={styles.headerActions}>
           <Link href={`/sales/leads/${lead.id}/edit`} className="sales-button">Editar ficha</Link>
-          <Link href="/sales/pipeline" className="sales-button secondary">Volver al pipeline</Link>
+          <Link href="/sales/opportunities" className="sales-button secondary">Volver a oportunidades</Link>
         </div>
       </header>
 
       {!persistenceConfigured ? (
-        <div className="sales-alert"><strong>Modo de prueba.</strong> La ficha se puede revisar; para guardar actividad hay que configurar la persistencia de Ventas.</div>
+        <div className="sales-alert"><strong>Modo de prueba.</strong> La ficha se puede revisar; guardar actividad requiere persistencia comercial.</div>
       ) : !operationsConfigured ? (
-        <div className="sales-alert"><strong>CRM pendiente de migración.</strong> Las llamadas y cambios de etapa siguen disponibles, pero precios ampliados, contactos y configuración requieren la migración 006.</div>
+        <div className="sales-alert"><strong>CRM pendiente de migración.</strong> Actividad, llamadas y siguientes acciones siguen disponibles, pero contactos múltiples y pricing ampliado requieren la migración 006.</div>
       ) : null}
+
+      <section className={styles.summaryGrid} aria-label="Resumen de oportunidad">
+        <div className={styles.summaryItem} data-emphasis="true"><span>Valor comercial</span><strong>{commercialValue != null ? money.format(commercialValue) : "—"}</strong></div>
+        <div className={styles.summaryItem}><span>Oferta enviada</span><strong>{lead.quotedPrice != null ? money.format(lead.quotedPrice) : "Sin oferta"}</strong></div>
+        <div className={styles.summaryItem}><span>Recurrente</span><strong>{lead.maintenanceMonthly != null ? `${money.format(lead.maintenanceMonthly)}/mes` : "—"}</strong></div>
+        <div className={styles.summaryItem}><span>Responsable</span><strong>{lead.owner === "antero" ? "Antero" : "Vadim"}</strong></div>
+        <div className={styles.summaryItem}><span>Siguiente acción</span><strong>{lead.nextActionAt ? timestamp.format(new Date(lead.nextActionAt)) : "Sin fecha"}</strong></div>
+      </section>
 
       <div className="sales-detail-grid">
         <div>
           <section className="sales-panel">
-            <h2>Siguiente movimiento</h2>
-            <p className="sales-note">{lead.nextAction || "No hay una siguiente acción definida."}</p>
-            <div className="sales-actions">
-              {lead.phone ? <a className="sales-button" href={`tel:${lead.phone}`}>Llamar</a> : null}
-              {primaryWhatsapp ? <a className="sales-button secondary" href={primaryWhatsapp} target="_blank" rel="noreferrer">WhatsApp</a> : null}
-              {lead.email ? <a className="sales-button secondary" href={`mailto:${lead.email}`}>Correo</a> : null}
-              {lead.prototypeUrl ? <a className="sales-button secondary" href={lead.prototypeUrl} target="_blank" rel="noreferrer">Abrir prototipo</a> : null}
-            </div>
-            <div className={styles.moneyGrid} aria-label="Economía de la oportunidad">
-              <div className={styles.moneyItem}><span>Potencial</span><strong>{lead.estimatedValue != null ? money.format(lead.estimatedValue) : "—"}</strong></div>
-              <div className={styles.moneyItem}><span>Precio enviado</span><strong>{lead.quotedPrice != null ? money.format(lead.quotedPrice) : "—"}</strong></div>
-              <div className={styles.moneyItem}><span>Recurrente</span><strong>{lead.maintenanceMonthly != null ? `${money.format(lead.maintenanceMonthly)}/mes` : "—"}</strong></div>
-            </div>
-          </section>
-
-          <section className="sales-panel">
-            <h2>Pipeline</h2>
-            <p className="sales-subtitle">Mover de etapa actualiza el pipeline y deja registro en el historial.</p>
-            <form action={updateStageAction} className={styles.stageForm}>
-              <input type="hidden" name="leadId" value={lead.id} />
-              <select name="stage" defaultValue={lead.stage} disabled={!persistenceConfigured}>
-                {activeStages.map((stage) => <option value={stage.key} key={stage.key}>{stage.label} · {stage.probability}%</option>)}
-              </select>
-              <button type="submit" disabled={!persistenceConfigured}>Cambiar etapa</button>
-            </form>
-          </section>
-
-          <section className="sales-panel">
-            <h2>Contexto</h2>
-            <p className="sales-note">{lead.notes || "Sin notas todavía."}</p>
-            <div className="sales-facts">
-              <div className="sales-fact"><span>Responsable</span><strong>{lead.owner === "antero" ? "Antero" : "Vadim"}</strong></div>
-              <div className="sales-fact"><span>Próxima acción</span><strong>{lead.nextActionOwner === "antero" ? "Antero" : "Vadim"}</strong></div>
-              <div className="sales-fact"><span>Contacto principal</span><strong>{lead.contactName || "Sin identificar"}</strong></div>
-              <div className="sales-fact"><span>Último contacto</span><strong>{lead.lastContactAt ? timestamp.format(new Date(lead.lastContactAt)) : "Aún no"}</strong></div>
-              {lead.websiteUrl ? <div className="sales-fact"><span>Web</span><a href={lead.websiteUrl} target="_blank" rel="noreferrer">Abrir ↗</a></div> : null}
-              {lead.socialUrl ? <div className="sales-fact"><span>Social</span><a href={lead.socialUrl} target="_blank" rel="noreferrer">Abrir ↗</a></div> : null}
-              {lead.repositoryFullName ? <div className="sales-fact"><span>Repositorio</span><a href={`https://github.com/${lead.repositoryFullName}`} target="_blank" rel="noreferrer">{lead.repositoryFullName}</a></div> : null}
+            <div className={styles.timelineHead}><h2>Actividad</h2><span>{activities.length} registros recientes</span></div>
+            <div className="sales-timeline">
+              {activities.map((activity) => (
+                <article className="sales-activity" key={activity.id}>
+                  <time>{timestamp.format(new Date(activity.createdAt))}</time>
+                  <div>
+                    <strong>{activity.outcome ? salesOutcomeLabels[activity.outcome] : activityLabels[activity.type] ?? activity.type}</strong>
+                    <p>{activity.note || `Registrado por ${activity.actor}`}</p>
+                  </div>
+                </article>
+              ))}
+              {!activities.length ? <p className="sales-subtitle">Aún no hay actividad registrada. Añade la primera desde la columna derecha.</p> : null}
             </div>
           </section>
 
@@ -186,22 +186,79 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
           </section>
 
           <section className="sales-panel">
-            <h2>Historial</h2>
-            <div className="sales-timeline">
-              {activities.map((activity) => (
-                <article className="sales-activity" key={activity.id}>
-                  <time>{timestamp.format(new Date(activity.createdAt))}</time>
-                  <div><strong>{activity.outcome ? salesOutcomeLabels[activity.outcome] : activityLabels[activity.type] ?? activity.type}</strong><p>{activity.note || `Registrado por ${activity.actor}`}</p></div>
-                </article>
-              ))}
-              {!activities.length ? <p className="sales-subtitle">Aún no hay actividad registrada.</p> : null}
+            <h2>Contexto de la oportunidad</h2>
+            <p className="sales-note">{lead.notes || "Sin notas todavía."}</p>
+            <div className="sales-facts">
+              <div className="sales-fact"><span>Contacto principal</span><strong>{lead.contactName || "Sin identificar"}</strong></div>
+              <div className="sales-fact"><span>Último contacto</span><strong>{lead.lastContactAt ? timestamp.format(new Date(lead.lastContactAt)) : "Aún no"}</strong></div>
+              <div className="sales-fact"><span>Origen</span><strong>{lead.source || "Sin origen"}</strong></div>
+              <div className="sales-fact"><span>Potencial</span><strong>{lead.estimatedValue != null ? money.format(lead.estimatedValue) : "—"}</strong></div>
+              {lead.websiteUrl ? <div className="sales-fact"><span>Web</span><a href={lead.websiteUrl} target="_blank" rel="noreferrer">Abrir ↗</a></div> : null}
+              {lead.socialUrl ? <div className="sales-fact"><span>Social</span><a href={lead.socialUrl} target="_blank" rel="noreferrer">Abrir ↗</a></div> : null}
+              {lead.prototypeUrl ? <div className="sales-fact"><span>Prototipo</span><a href={lead.prototypeUrl} target="_blank" rel="noreferrer">Abrir ↗</a></div> : null}
+              {lead.repositoryFullName ? <div className="sales-fact"><span>Repositorio</span><a href={`https://github.com/${lead.repositoryFullName}`} target="_blank" rel="noreferrer">{lead.repositoryFullName}</a></div> : null}
             </div>
           </section>
         </div>
 
-        <aside>
-          <section className="sales-panel">
+        <aside className={styles.asideStack}>
+          <section className={styles.asidePanel}>
+            <h2>Siguiente acción</h2>
+            <p>El CRM debe dejar claro qué ocurre después, quién lo hace y cuándo.</p>
+            <form action={updateNextActionAction} className={styles.quickForm}>
+              <input type="hidden" name="leadId" value={lead.id} />
+              <textarea name="nextAction" defaultValue={lead.nextAction ?? ""} placeholder="Ej. llamar, enviar propuesta, preparar demo…" disabled={!persistenceConfigured} />
+              <div className={styles.quickGrid}>
+                <select name="nextActionOwner" defaultValue={lead.nextActionOwner} disabled={!persistenceConfigured} aria-label="Responsable de siguiente acción">
+                  <option value="antero">Antero</option><option value="vadim">Vadim</option>
+                </select>
+                <input name="nextActionAt" type="datetime-local" defaultValue={madridInputValue(lead.nextActionAt)} disabled={!persistenceConfigured} aria-label="Fecha de siguiente acción" />
+              </div>
+              <select name="actor" defaultValue={lead.nextActionOwner} disabled={!persistenceConfigured} aria-label="Quién actualiza la acción">
+                <option value="antero">Actualizado por Antero</option><option value="vadim">Actualizado por Vadim</option>
+              </select>
+              <button type="submit" disabled={!persistenceConfigured}>Guardar siguiente acción</button>
+            </form>
+            <div className={styles.quickLinks}>
+              {lead.phone ? <a href={`tel:${lead.phone}`}>Llamar</a> : <span />}
+              {primaryWhatsapp ? <a href={primaryWhatsapp} target="_blank" rel="noreferrer">WhatsApp</a> : <span />}
+              {lead.email ? <a href={`mailto:${lead.email}`}>Correo</a> : <span />}
+            </div>
+          </section>
+
+          <section className={styles.asidePanel}>
+            <h2>Etapa</h2>
+            <p>Mover de etapa actualiza el pipeline y deja trazabilidad.</p>
+            <form action={updateStageAction} className={styles.stageForm}>
+              <input type="hidden" name="leadId" value={lead.id} />
+              <select name="stage" defaultValue={lead.stage} disabled={!persistenceConfigured}>
+                {activeStages.map((stage) => <option value={stage.key} key={stage.key}>{stage.label} · {stage.probability}%</option>)}
+              </select>
+              <button type="submit" disabled={!persistenceConfigured}>Mover</button>
+            </form>
+          </section>
+
+          <section className={styles.asidePanel}>
+            <h2>Registrar actividad</h2>
+            <p>Añade contexto sin alterar automáticamente la etapa ni la siguiente acción.</p>
+            <form action={recordActivityAction} className={styles.activityForm}>
+              <input type="hidden" name="leadId" value={lead.id} />
+              <div className={styles.activityRow}>
+                <select name="type" defaultValue="note" disabled={!persistenceConfigured} aria-label="Tipo de actividad">
+                  <option value="note">Nota</option><option value="call">Llamada</option><option value="message">Mensaje / WhatsApp</option><option value="email">Correo</option>
+                </select>
+                <select name="actor" defaultValue="vadim" disabled={!persistenceConfigured} aria-label="Autor de actividad">
+                  <option value="vadim">Vadim</option><option value="antero">Antero</option>
+                </select>
+              </div>
+              <textarea name="note" required placeholder="Qué pasó, qué dijo el cliente, qué aprendimos…" disabled={!persistenceConfigured} />
+              <button type="submit" disabled={!persistenceConfigured}>Añadir al historial</button>
+            </form>
+          </section>
+
+          <section className={styles.asidePanel}>
             <h2>Resultado de llamada</h2>
+            <p>Úsalo cuando quieras que Control actualice automáticamente etapa y seguimiento.</p>
             <form action={recordOutcomeAction} className="sales-outcome-form">
               <input type="hidden" name="leadId" value={lead.id} />
               <textarea name="note" placeholder="Qué dijo, qué necesita, cuándo volver a hablar…" disabled={!persistenceConfigured} />
