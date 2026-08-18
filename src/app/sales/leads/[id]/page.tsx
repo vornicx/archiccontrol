@@ -5,6 +5,7 @@ import {
   deleteContactAction,
   recordOutcomeAction,
   setPrimaryContactAction,
+  updateContactAction,
   updateStageAction,
 } from "@/app/sales/actions";
 import {
@@ -145,6 +146,22 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
                         <button className={`${styles.contactAction} ${styles.danger}`} type="submit" disabled={!persistenceConfigured}>Eliminar</button>
                       </form>
                     </div>
+                    <details className={styles.editDetails}>
+                      <summary>Editar contacto</summary>
+                      <form action={updateContactAction} className={styles.contactForm}>
+                        <input type="hidden" name="leadId" value={lead.id} />
+                        <input type="hidden" name="contactId" value={contact.id} />
+                        <input type="hidden" name="wasPrimary" value={String(contact.isPrimary)} />
+                        <input name="name" defaultValue={contact.name} placeholder="Nombre" required disabled={!persistenceConfigured} />
+                        <input name="role" defaultValue={contact.role ?? ""} placeholder="Cargo / por quién preguntar" disabled={!persistenceConfigured} />
+                        <input name="phone" defaultValue={contact.phone ?? ""} inputMode="tel" placeholder="Teléfono" disabled={!persistenceConfigured} />
+                        <input name="whatsapp" defaultValue={contact.whatsapp ?? ""} inputMode="tel" placeholder="WhatsApp" disabled={!persistenceConfigured} />
+                        <input className={styles.full} name="email" defaultValue={contact.email ?? ""} type="email" placeholder="Correo" disabled={!persistenceConfigured} />
+                        <textarea className={styles.full} name="notes" defaultValue={contact.notes ?? ""} placeholder="Notas sobre esta persona" disabled={!persistenceConfigured} />
+                        <label className={`${styles.checkbox} ${styles.full}`}><input type="checkbox" name="isPrimary" defaultChecked={contact.isPrimary} disabled={!persistenceConfigured} /> Contacto principal</label>
+                        <button className={`sales-button ${styles.full}`} type="submit" disabled={!persistenceConfigured}>Guardar contacto</button>
+                      </form>
+                    </details>
                   </article>
                 );
               })}
