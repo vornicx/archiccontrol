@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { updateSalesContact } from "@/sales/contact-operations";
 import {
   addSalesContact,
   createSalesLead,
@@ -177,6 +178,26 @@ export async function addContactAction(formData: FormData): Promise<void> {
     whatsapp: text(formData, "whatsapp"),
     notes: text(formData, "notes"),
     isPrimary: formData.get("isPrimary") === "on",
+  });
+  revalidateSales(leadId);
+}
+
+export async function updateContactAction(formData: FormData): Promise<void> {
+  const leadId = text(formData, "leadId");
+  const contactId = text(formData, "contactId");
+  const name = text(formData, "name");
+  if (!leadId || !contactId || !name) return;
+  await updateSalesContact({
+    leadId,
+    contactId,
+    name,
+    role: text(formData, "role"),
+    phone: text(formData, "phone"),
+    email: text(formData, "email"),
+    whatsapp: text(formData, "whatsapp"),
+    notes: text(formData, "notes"),
+    isPrimary: formData.get("isPrimary") === "on",
+    wasPrimary: formData.get("wasPrimary") === "true",
   });
   revalidateSales(leadId);
 }
