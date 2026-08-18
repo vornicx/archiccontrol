@@ -49,21 +49,28 @@ test("el CRM funciona como espacio comercial operativo dentro de Control", async
   await expect(page.getByText("Nombre visible", { exact: true }).first()).toBeVisible();
 });
 
-test("el estándar de calidad y el control de proyecto son navegables", async ({ page }) => {
+test("el estándar de calidad y la rúbrica ejecutable son navegables", async ({ page }) => {
   await openControl(page);
   await page.getByRole("link", { name: "Calidad", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Estándar de Calidad Archic" })).toBeVisible();
   await expect(page.getByText("88").first()).toBeVisible();
+  await expect(page.getByText("50").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Criterio Archic ejecutable, separado del benchmark." })).toBeVisible();
+  await expect(page.getByText("Atmosphere", { exact: true })).toBeVisible();
+  await expect(page.getByText("Hard gates G01–G10", { exact: true })).toBeVisible();
+
   await page.getByRole("link", { name: "Proyectos", exact: true }).click();
   await page.getByRole("link", { name: /Marbella For Sale/ }).click();
   await expect(page.getByText("Sin bloqueos duros de calidad activos")).toBeVisible();
+  await expect(page.getByText("Archic Score", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Falta la revisión Archic/)).toBeVisible();
   await expect(page.getByText(/Too many mobile tap targets/).first()).toBeVisible();
 });
 
 test("las vistas principales móviles no tienen overflow horizontal", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("mobile"), "comprobación exclusiva de móvil");
   await openControl(page);
-  for (const path of ["/", "/prospects", "/sales", "/sales/opportunities"]) {
+  for (const path of ["/", "/prospects", "/sales", "/sales/opportunities", "/quality"]) {
     await page.goto(path);
     const dimensions = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
@@ -74,10 +81,10 @@ test("las vistas principales móviles no tienen overflow horizontal", async ({ p
   await expect(page.getByRole("navigation", { name: "Navegación principal" })).toBeVisible();
 });
 
-test("el endpoint de salud expone el estándar activo", async ({ request }) => {
+test("el endpoint de salud expone el estándar y la rúbrica activos", async ({ request }) => {
   const response = await request.get("/api/health");
   expect(response.ok()).toBeTruthy();
-  await expect(response.json()).resolves.toMatchObject({ ok: true, standardVersion: "1.0.0" });
+  await expect(response.json()).resolves.toMatchObject({ ok: true, standardVersion: "1.0.0", rubricVersion: "1.0" });
 });
 
 test("la cola de automatización y la preparación de despliegues son visibles", async ({ page }) => {

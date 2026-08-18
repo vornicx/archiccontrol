@@ -4,6 +4,7 @@ import { benchmarkSnapshot } from "@/lib/bootstrap";
 import { db, hasDatabase } from "@/lib/db";
 import type { BenchmarkGate, BenchmarkIssue, BenchmarkProject } from "@/lib/types";
 import { evaluateQualityGate } from "@/quality/gate";
+import { getLatestRubricReport } from "@/quality/rubric-repository";
 
 type Row = Record<string, unknown>;
 
@@ -57,7 +58,7 @@ export async function getLiveProject(id: string) {
       throw new Error("Archic Control refuses non-persistent production mode. Configure DATABASE_URL.");
     }
     if (!bootstrap) return null;
-    return { project: bootstrap, gate: evaluateQualityGate(bootstrap) };
+    return { project: bootstrap, rubric: null, gate: evaluateQualityGate(bootstrap) };
   }
 
   const sql = db();
@@ -68,14 +69,17 @@ export async function getLiveProject(id: string) {
   const projectRow = projectRows[0] as Row | undefined;
   if (!projectRow) return null;
 
-  const runRows = await sql.query(
-    `select id, raw_score, final_score, input, output, started_at
-     from quality_runs
-     where project_id = $1
-     order by started_at desc
-     limit 1`,
-    [id],
-  );
+  const [runRows, rubric] = await Promise.all([
+    sql.query(
+      `select id, raw_score, final_score, input, output, started_at
+       from quality_runs
+       where project_id = $1 and source = 'archic-benchmark'
+       order by started_at desc
+       limit 1`,
+      [id],
+    ),
+    getLatestRubricReport(id),
+  ]);
   const latestRun = runRows[0] as Row | undefined;
   const latestInput = asRecord(latestRun?.input);
 
@@ -114,5 +118,5 @@ export async function getLiveProject(id: string) {
     reviewedAt: latestRun?.started_at ? String(latestRun.started_at) : bootstrap?.reviewedAt,
   };
 
-  return { project, gate: evaluateQualityGate(project) };
+  return { project, rubric, gate: evaluateQualityGate(project, { rubric }) };
 }

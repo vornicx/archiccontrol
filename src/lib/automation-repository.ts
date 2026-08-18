@@ -220,8 +220,19 @@ export async function completeTask(input: { id: string; leaseToken: string; outc
       let qualityStatus = reportedQuality === "passed" || reportedQuality === "failed" || reportedQuality === "needs_evidence"
         ? reportedQuality : status === "succeeded" ? "needs_evidence" : "failed";
       if (qualityStatus === "passed" && task.project_id) {
-        const projectRows = await sql.query(`select gate_status from projects where id=$1`, [task.project_id]);
-        if (projectRows[0]?.gate_status !== "passed") qualityStatus = "needs_evidence";
+        const projectRows = await sql.query(
+          `select p.gate_status,
+             (select q.output->>'status'
+              from quality_runs q
+              where q.project_id=p.id and q.source='archic-rubric'
+              order by q.started_at desc
+              limit 1) as archic_status
+           from projects p where p.id=$1`,
+          [task.project_id],
+        );
+        const project = projectRows[0] as Row | undefined;
+        const rubricReady = project?.archic_status === "CLIENT_READY" || project?.archic_status === "FLAGSHIP_READY";
+        if (project?.gate_status !== "passed" || !rubricReady) qualityStatus = "needs_evidence";
       }
       await sql.query(`update deployment_previews set quality_status=$2 where id=$1`, [deploymentId, qualityStatus]);
       if (status === "succeeded" && qualityStatus === "passed" && task.project_id) {
@@ -229,7 +240,7 @@ export async function completeTask(input: { id: string; leaseToken: string; outc
           `insert into decisions(id,project_id,type,title,context,recommendation,risk,status,blocking,requested_by)
            values($1,$2,'final_approval','Approve validated preview',$3,$4,$5,'pending',true,'quality-gate')
            on conflict(id) do nothing`,
-          [`preview:${deploymentId}:approval`, task.project_id, `Preview ${deploymentId} passed Quality Gate, project journeys and smoke tests.`, "Approve this exact artifact for promotion to main/production.", "Approval promotes an immutable, already-tested artifact."],
+          [`preview:${deploymentId}:approval`, task.project_id, `Preview ${deploymentId} passed Quality Gate, Archic Rubric, project journeys and smoke tests.`, "Approve this exact artifact for promotion to main/production.", "Approval promotes an immutable, already-tested artifact."],
         );
         await sql.query(`update projects set phase='approval' where id=$1`, [task.project_id]);
       }

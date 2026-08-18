@@ -11,13 +11,17 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
             <div className="project-name">{project.name}</div>
             <div className="project-repo">{project.repositoryFullName}</div>
           </div>
-          <div className="score">{project.score?.toFixed(1) ?? "—"} <small>/100</small></div>
-          <div className={`delta ${(project.delta ?? 0) >= 0 ? "delta-positive" : "delta-negative"}`}>
-            {project.delta == null ? "Sin variación" : `${project.delta >= 0 ? "+" : ""}${project.delta.toFixed(1)}`}
+          <div>
+            <div className="score">{project.archicScore?.toFixed(1) ?? "—"} <small>/100</small></div>
+            <div className="row-meta">{project.archicLevel ?? "Archic pendiente"}</div>
+          </div>
+          <div>
+            <div className="score">{project.score?.toFixed(1) ?? "—"} <small>/100</small></div>
+            <div className="row-meta">Benchmark</div>
           </div>
           <div>
             <StatusPill status={project.gateStatus} />
-            <div className="row-meta">{project.openFindings} incidencia(s) abierta(s)</div>
+            <div className="row-meta">{project.archicStatus ? project.archicStatus.replaceAll("_", " ") : `${project.openFindings} incidencia(s) abierta(s)`}</div>
           </div>
           <span className="arrow" aria-hidden="true">›</span>
         </Link>
@@ -25,4 +29,3 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
     </div>
   );
 }
-

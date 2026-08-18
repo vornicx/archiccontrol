@@ -30,6 +30,9 @@ export async function getDashboard(): Promise<DashboardData> {
   const [projectRows, decisionRows, runRows, statsRows] = await Promise.all([
     sql.query(`
       select p.*,
+        latest_rubric.final_score as archic_score,
+        latest_rubric.output->>'archicLevel' as archic_level,
+        latest_rubric.output->>'status' as archic_status,
         count(f.id) filter (
           where f.status in ('open','fixing','blocked')
             and (f.source <> 'benchmark' or f.run_id = latest_benchmark.id)
@@ -53,9 +56,16 @@ export async function getDashboard(): Promise<DashboardData> {
         order by q.started_at desc
         limit 1
       ) latest_benchmark on true
+      left join lateral (
+        select q.final_score, q.output
+        from quality_runs q
+        where q.project_id = p.id and q.source = 'archic-rubric'
+        order by q.started_at desc
+        limit 1
+      ) latest_rubric on true
       left join findings f on f.project_id = p.id
       where p.status = 'active'
-      group by p.id, latest_benchmark.id
+      group by p.id, latest_benchmark.id, latest_rubric.final_score, latest_rubric.output
       order by p.updated_at desc
     `),
     sql.query(`
@@ -102,13 +112,16 @@ export async function getDashboard(): Promise<DashboardData> {
     benchmarkProfile: String(row.benchmark_profile),
     phase: row.phase as ProjectSummary["phase"],
     score: row.current_score == null ? null : asNumber(row.current_score),
+    archicScore: row.archic_score == null ? null : asNumber(row.archic_score),
+    archicLevel: row.archic_level ? String(row.archic_level) : null,
+    archicStatus: row.archic_status ? String(row.archic_status) : null,
     delta: null,
     tier: null,
     gateStatus: row.gate_status as ProjectSummary["gateStatus"],
     activeGates: asNumber(row.active_gates),
     openFindings: asNumber(row.open_findings),
     criticalFindings: asNumber(row.critical_findings),
-    nextAction: row.gate_status === "passed"
+    nextAction: row.gate_status === "passed" && (row.archic_status === "CLIENT_READY" || row.archic_status === "FLAGSHIP_READY")
       ? "Ready for the human approval boundary."
       : "Agents continue on the highest-impact blocking finding.",
     lastBenchmarkAt: asIso(row.last_benchmark_at),
