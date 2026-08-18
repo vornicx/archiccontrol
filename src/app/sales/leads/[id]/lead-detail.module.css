@@ -45,7 +45,7 @@
 }
 
 .summaryItem[data-emphasis="true"] {
-  border-color: #d1ddce;
+  border-color: var(--crm-accent-border);
   background: var(--crm-accent-soft);
 }
 
@@ -121,7 +121,7 @@
 .activityForm button {
   border-color: var(--crm-accent);
   background: var(--crm-accent);
-  color: #fffdf8;
+  color: var(--crm-surface);
 }
 
 .quickForm button:hover,
@@ -171,12 +171,12 @@
   border: 1px solid var(--crm-border);
   border-radius: 14px;
   background: var(--crm-surface);
-  box-shadow: var(--crm-shadow);
+  box-shadow: 0 12px 34px rgba(66, 57, 43, .07);
 }
 
 .asidePanel:first-child {
-  border-color: #cfdccc;
-  background: #fbfdf9;
+  border-color: var(--crm-accent-border);
+  background: var(--crm-surface-focus);
 }
 
 .asidePanel h2 {
@@ -281,7 +281,7 @@
   align-items: center;
   min-height: 23px;
   padding: 3px 7px;
-  border: 1px solid #cfdccb;
+  border: 1px solid var(--crm-accent-border);
   border-radius: 999px;
   background: var(--crm-accent-soft);
   color: var(--crm-accent-strong);
