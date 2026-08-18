@@ -26,6 +26,9 @@ export interface ProjectSummary {
   benchmarkProfile: string;
   phase: ProjectPhase;
   score: number | null;
+  archicScore: number | null;
+  archicLevel: string | null;
+  archicStatus: string | null;
   delta: number | null;
   tier: string | null;
   gateStatus: GateStatus;
