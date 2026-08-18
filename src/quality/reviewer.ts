@@ -17,8 +17,8 @@ export const rubricPageEvidenceSchema = z.object({
   brokenImages: z.array(z.string().max(1_000)).max(40),
   consoleErrors: z.array(z.string().max(1_000)).max(30),
   overflowX: z.boolean(),
-  desktopImageBase64: z.string().min(100).max(500_000),
-  mobileImageBase64: z.string().min(100).max(500_000),
+  desktopImageBase64: z.string().min(100).max(420_000),
+  mobileImageBase64: z.string().min(100).max(420_000),
 });
 
 export type RubricPageEvidence = z.infer<typeof rubricPageEvidenceSchema>;
@@ -271,7 +271,7 @@ export async function reviewPreviewWithGoldenSet(input: {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: process.env.QUALITY_REVIEW_MODEL || "gpt-5.6-sol",
+      model: process.env.QUALITY_REVIEW_MODEL || "gpt-5.6",
       input: [{ role: "user", content }],
       max_output_tokens: boundedInteger(process.env.QUALITY_REVIEW_MAX_OUTPUT_TOKENS, 14_000, 4_000, 24_000),
       text: { format: { type: "json_schema", name: "archic_quality_review", strict: true, schema: jsonSchema() } },
