@@ -1,0 +1,181 @@
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.moneyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin-top: 18px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: var(--line-soft);
+}
+
+.moneyItem {
+  padding: 16px;
+  background: var(--ink-1);
+}
+
+.moneyItem span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--paper-2);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.moneyItem strong {
+  color: var(--paper-0);
+  font-size: 21px;
+  font-weight: 590;
+  letter-spacing: -.035em;
+}
+
+.stageForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.stageForm select,
+.contactForm input,
+.contactForm textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-0);
+  color: var(--paper-0);
+  padding: 9px 11px;
+}
+
+.stageForm button,
+.contactAction {
+  min-height: 42px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-2);
+  color: var(--paper-0);
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.contacts {
+  display: grid;
+  gap: 10px;
+}
+
+.contactCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 15px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-1);
+}
+
+.contactCard h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 620;
+}
+
+.contactCard p {
+  margin: 4px 0 0;
+  color: var(--paper-2);
+  font-size: 11px;
+}
+
+.contactMethods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.contactMethods a {
+  color: var(--paper-1);
+  font-size: 11px;
+}
+
+.contactMeta {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 7px;
+  border: 1px solid color-mix(in srgb, var(--signal) 26%, var(--line-soft));
+  border-radius: 999px;
+  color: var(--signal);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.contactActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contactAction {
+  min-height: 34px;
+  padding: 6px 9px;
+  font-size: 10px;
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.contactForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.contactForm textarea {
+  min-height: 78px;
+  resize: vertical;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--paper-1);
+  font-size: 11px;
+}
+
+.checkbox input {
+  width: auto;
+  min-height: auto;
+}
+
+@media (max-width: 760px) {
+  .moneyGrid { grid-template-columns: 1fr; }
+  .contactCard { grid-template-columns: 1fr; }
+  .contactActions { flex-direction: row; flex-wrap: wrap; }
+  .contactForm { grid-template-columns: 1fr; }
+  .full { grid-column: auto; }
+}
