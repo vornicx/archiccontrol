@@ -41,14 +41,14 @@ export default async function OverviewPage() {
 
   return (
     <>
-      <Topbar title="Resumen operativo" meta={formatTimestamp(data.generatedAt)} />
+      <Topbar eyebrow="Centro de mando" title="Hoy en Archic" meta={formatTimestamp(data.generatedAt)} />
 
       {!benchmarkHealth.fresh ? (
         <section className={styles.freshnessAlert} aria-label="Aviso de antigüedad de datos del benchmark">
           <div>
-            <strong>Los datos del benchmark están desactualizados</strong>
+            <strong>Los datos de calidad necesitan actualizarse</strong>
             <p>
-              Control ha intentado actualizarlos automáticamente, pero todavía no hay evidencia de calidad reciente. Las aprobaciones finales siguen bloqueadas.
+              Control ha intentado recuperar el benchmark, pero todavía no hay evidencia reciente. Las aprobaciones finales siguen bloqueadas para no promocionar a producción con datos antiguos.
               {benchmarkHealth.lastBenchmarkAt ? ` Última importación correcta: ${formatTimestamp(benchmarkHealth.lastBenchmarkAt)}.` : " No consta ninguna importación correcta."}
               {benchmarkSync.error ? ` Detalle de recuperación: ${benchmarkSync.error}.` : ""}
             </p>
@@ -57,21 +57,21 @@ export default async function OverviewPage() {
         </section>
       ) : null}
 
-      <section className="metric-strip" aria-label="Métricas del portfolio">
+      <section className="metric-strip" aria-label="Estado operativo">
         <div className="metric metric-primary">
-          <span className="metric-label">Necesita a Vadim</span>
+          <span className="metric-label">Tu cola</span>
           <div className="metric-value">{actionableDecisions.length}<small>{actionableDecisions.length === 1 ? " decisión" : " decisiones"}</small></div>
         </div>
         <div className="metric">
-          <span className="metric-label">Calidad del portfolio</span>
+          <span className="metric-label">Calidad</span>
           <div className="metric-value">{data.portfolio.score.toFixed(1)}<small>/100</small></div>
         </div>
         <div className="metric">
-          <span className="metric-label">Bloqueos activos</span>
-          <div className="metric-value">{data.portfolio.activeGates}<small> bloqueos</small></div>
+          <span className="metric-label">Bloqueos</span>
+          <div className="metric-value">{data.portfolio.activeGates}<small> activos</small></div>
         </div>
         <div className="metric" title={automationHealth.detail}>
-          <span className="metric-label">Salud de automatización</span>
+          <span className="metric-label">Automatización</span>
           <div className="metric-value">{automationHealth.score}<small>% · {healthLabels[automationHealth.state]}</small></div>
         </div>
       </section>
@@ -81,21 +81,21 @@ export default async function OverviewPage() {
           <section className="section" aria-labelledby="needs-vadim-title">
             <div className="section-head">
               <div>
-                <p className="eyebrow">Límite humano</p>
-                <h2 className="section-title" id="needs-vadim-title">Necesita a Vadim</h2>
+                <p className="eyebrow">Tu intervención</p>
+                <h2 className="section-title" id="needs-vadim-title">Decisiones que sí necesitan criterio humano</h2>
               </div>
-              <span className="section-kicker">Todo lo demás se queda en Control</span>
+              <span className="section-kicker">El resto sigue avanzando solo</span>
             </div>
             {actionableDecisions.length
               ? actionableDecisions.map((decision) => <DecisionCard decision={decision} key={decision.id} />)
-              : <div className="empty-decision"><div><strong>No hay decisiones pendientes.</strong> Control está resolviendo la cola operativa de forma autónoma.</div></div>}
+              : <div className="empty-decision"><div><strong>No tienes nada pendiente.</strong> Control está resolviendo la cola operativa de forma autónoma.</div></div>}
           </section>
 
           <section className="section" aria-labelledby="projects-title">
             <div className="section-head">
               <div>
-                <p className="eyebrow">Portfolio activo</p>
-                <h2 className="section-title" id="projects-title">Evolución de calidad</h2>
+                <p className="eyebrow">Producción</p>
+                <h2 className="section-title" id="projects-title">Portfolio activo</h2>
               </div>
               <span className="section-kicker">{data.projects.length} proyectos</span>
             </div>
@@ -106,8 +106,8 @@ export default async function OverviewPage() {
         <aside className="section" aria-labelledby="runs-title">
           <div className="section-head">
             <div>
-              <p className="eyebrow">Trabajo autónomo</p>
-              <h2 className="section-title" id="runs-title">Ejecuciones recientes</h2>
+              <p className="eyebrow">Sistema</p>
+              <h2 className="section-title" id="runs-title">Actividad reciente</h2>
             </div>
           </div>
           <RunList runs={data.runs} />
