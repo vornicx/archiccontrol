@@ -58,6 +58,9 @@ export type SalesLead = {
   stage: SalesStage;
   score: number | null;
   estimatedValue: number | null;
+  quotedPrice: number | null;
+  maintenanceMonthly: number | null;
+  source: string | null;
   contactName: string | null;
   phone: string | null;
   email: string | null;
@@ -74,6 +77,49 @@ export type SalesLead = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type SalesContact = {
+  id: string;
+  leadId: string;
+  name: string;
+  role: string | null;
+  phone: string | null;
+  email: string | null;
+  whatsapp: string | null;
+  notes: string | null;
+  isPrimary: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SalesPipelineStage = {
+  key: SalesStage;
+  label: string;
+  position: number;
+  active: boolean;
+  probability: number;
+  terminal: boolean;
+};
+
+export const defaultPipelineStages: SalesPipelineStage[] = salesStages.map((key, index) => ({
+  key,
+  label: salesStageLabels[key],
+  position: (index + 1) * 10,
+  active: key !== "lost",
+  probability: {
+    found: 5,
+    researched: 10,
+    prototype: 20,
+    contacted: 25,
+    interested: 45,
+    meeting: 60,
+    proposal: 70,
+    negotiation: 85,
+    won: 100,
+    lost: 0,
+  }[key],
+  terminal: key === "won" || key === "lost",
+}));
 
 export type SalesActivity = {
   id: string;
