@@ -1,0 +1,144 @@
+.form {
+  display: grid;
+  gap: 30px;
+}
+
+.section {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-1);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.sectionHead h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 620;
+  letter-spacing: -.02em;
+}
+
+.sectionHead p {
+  margin: 0;
+  color: var(--paper-2);
+  font-size: 11px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.triple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  color: var(--paper-1);
+  font-size: 11px;
+  font-weight: 620;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-0);
+  color: var(--paper-0);
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--control-interactive-ease), background var(--duration-fast) var(--control-interactive-ease);
+}
+
+.field textarea {
+  min-height: 118px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--signal);
+  background: var(--ink-1);
+}
+
+.hint {
+  color: var(--paper-2);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.actions {
+  position: sticky;
+  bottom: 14px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: color-mix(in srgb, var(--ink-0) 88%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.cancel,
+.submit {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: var(--control-interactive-radius);
+  font-size: 12px;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.cancel {
+  border: 1px solid var(--line-strong);
+  background: var(--ink-1);
+  color: var(--paper-1);
+}
+
+.submit {
+  border: 1px solid var(--signal);
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+
+@media (max-width: 760px) {
+  .section { padding: 18px; }
+  .grid,
+  .triple { grid-template-columns: 1fr; }
+  .sectionHead { align-items: flex-start; }
+  .sectionHead p { display: none; }
+  .actions { bottom: 8px; }
+  .cancel,
+  .submit { flex: 1; }
+}
