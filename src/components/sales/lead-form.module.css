@@ -95,7 +95,7 @@
 .actions {
   position: sticky;
   bottom: 14px;
-  z-index: 5;
+  z-index: var(--layer-nav);
   display: flex;
   align-items: center;
   justify-content: flex-end;
