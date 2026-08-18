@@ -1,0 +1,35 @@
+name: Archic Visual Rubric Worker
+
+on:
+  repository_dispatch:
+    types: [archic_control_task]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: archic-rubric-${{ github.event.client_payload.taskId }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    if: github.event.client_payload.taskType == 'rubric'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser runtime
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Review immutable preview
+        env:
+          CONTROL_URL: ${{ github.event.client_payload.controlUrl }}
+          TASK_ID: ${{ github.event.client_payload.taskId }}
+          CALLBACK_TOKEN: ${{ github.event.client_payload.callbackToken }}
+          TASK_INPUT: ${{ toJSON(github.event.client_payload.input) }}
+          EXTERNAL_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/rubric-worker.mjs

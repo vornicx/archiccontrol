@@ -3,6 +3,7 @@ import { createSign } from "node:crypto";
 import { getControlPublicUrl } from "@/lib/control-url";
 
 const API = "https://api.github.com";
+const DEFAULT_CONTROL_REPOSITORY = "vornicx/archiccontrol";
 
 function base64url(value: string | Buffer): string {
   return Buffer.from(value).toString("base64url");
@@ -75,6 +76,11 @@ async function repositoryToken(repositoryFullName: string): Promise<string> {
   return access.token;
 }
 
+function controlRepository(): string {
+  const configured = process.env.GITHUB_CONTROL_REPOSITORY?.trim();
+  return configured || DEFAULT_CONTROL_REPOSITORY;
+}
+
 export function isGithubAutomationConfigured(): boolean {
   return Boolean(process.env.GITHUB_AUTOMATION_TOKEN || (process.env.GITHUB_APP_ID && process.env.GITHUB_APP_PRIVATE_KEY));
 }
@@ -85,6 +91,22 @@ export async function repositoryTaskReadiness(
 ): Promise<{ ready: boolean; detail: string }> {
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repositoryFullName)) {
     return { ready: false, detail: "Repository name is invalid." };
+  }
+
+  if (taskType === "rubric") {
+    const workerRepository = controlRepository();
+    if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(workerRepository)) {
+      return { ready: false, detail: "Central rubric worker repository is invalid." };
+    }
+    const token = await repositoryToken(workerRepository);
+    const [workflow, worker] = await Promise.all([
+      githubContent(workerRepository, ".github/workflows/rubric-review.yml", token),
+      githubContent(workerRepository, "scripts/rubric-worker.mjs", token),
+    ]);
+    if (!workflow || !worker) {
+      return { ready: false, detail: "Central visual rubric worker is not installed." };
+    }
+    return { ready: true, detail: `Central visual rubric worker is installed in ${workerRepository}.` };
   }
 
   const token = await repositoryToken(repositoryFullName);
@@ -149,13 +171,14 @@ export async function dispatchRepositoryTask(
     controlUrl?: string;
   },
 ): Promise<void> {
-  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repositoryFullName)) throw new Error("Invalid repository name");
-  const token = await repositoryToken(repositoryFullName);
+  const targetRepository = payload.taskType === "rubric" ? controlRepository() : repositoryFullName;
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(targetRepository)) throw new Error("Invalid repository name");
+  const token = await repositoryToken(targetRepository);
   const clientPayload = {
     ...payload,
     controlUrl: payload.controlUrl ?? getControlPublicUrl(),
   };
-  await github<void>(`/repos/${repositoryFullName}/dispatches`, token, {
+  await github<void>(`/repos/${targetRepository}/dispatches`, token, {
     method: "POST",
     body: JSON.stringify({ event_type: "archic_control_task", client_payload: clientPayload }),
   });

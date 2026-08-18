@@ -46,6 +46,7 @@ function deploymentReadiness() {
     { label: "Machine API", ready: Boolean(process.env.AGENT_SECRET), detail: "Authenticated worker leasing" },
     { label: "GitHub events", ready: Boolean(process.env.GITHUB_WEBHOOK_SECRET), detail: "Signed delivery ingestion" },
     { label: "GitHub automation", ready: isGithubAutomationConfigured(), detail: "App installation or scoped token" },
+    { label: "Visual quality reviewer", ready: Boolean(process.env.OPENAI_API_KEY), detail: "Golden Eight multimodal review" },
     { label: "Benchmark ingestion", ready: Boolean(process.env.INTEGRATION_SECRET), detail: "Signed quality reports" },
     { label: "Scheduled control", ready: Boolean(process.env.CRON_SECRET), detail: "Dispatch and reconciliation" },
   ];
@@ -187,6 +188,8 @@ export async function completeTask(input: { id: string; leaseToken: string; outc
   if (!rows[0]) throw new Error("Task lease is invalid or expired");
   const task = rows[0] as Row;
   const status = task.status as "succeeded" | "queued" | "blocked";
+  const payload = typeof task.payload === "object" && task.payload ? task.payload as Record<string, unknown> : {};
+
   if (task.finding_id) {
     await sql.query(
       `update findings set status=$2, retry_count=$3 where id=$1`,
@@ -201,13 +204,37 @@ export async function completeTask(input: { id: string; leaseToken: string; outc
       [`task:${input.id}:risk`, task.project_id, input.error ?? "The worker failed without a diagnostic.", "Accept the risk, change scope, or assign a human fix.", `Task ${task.task_type} failed after ${task.attempt} attempts.`],
     );
   }
+
   if (task.task_type === "quality" && task.project_id && status === "succeeded") {
     const reportedGate = input.result.gateStatus;
     const gateStatus = reportedGate === "passed" || reportedGate === "failed" || reportedGate === "needs_evidence" ? reportedGate : "needs_evidence";
     await sql.query(`update projects set gate_status=$2,phase=case when $2='passed' then 'preview' else 'quality' end where id=$1`, [task.project_id, gateStatus]);
   }
+
+  if (task.task_type === "rubric" && task.project_id) {
+    const deploymentId = typeof payload.deploymentId === "string" ? payload.deploymentId : null;
+    const baseUrl = typeof payload.baseUrl === "string" ? payload.baseUrl : null;
+    const rubricStatus = typeof input.result.rubricStatus === "string" ? input.result.rubricStatus : null;
+    const rubricReady = status === "succeeded" && (rubricStatus === "CLIENT_READY" || rubricStatus === "FLAGSHIP_READY");
+    if (deploymentId) {
+      const qualityStatus = rubricReady ? "running" : rubricStatus === "REJECT" ? "failed" : "needs_evidence";
+      await sql.query(`update deployment_previews set quality_status=$2 where id=$1`, [deploymentId, qualityStatus]);
+      if (rubricReady && baseUrl) {
+        await enqueueTask({
+          projectId: String(task.project_id),
+          type: "smoke",
+          executor: "worker",
+          priority: 95,
+          payload: { summary: `Smoke test ${baseUrl}`, deploymentId, baseUrl },
+          idempotencyKey: `smoke:${deploymentId}`,
+        });
+      } else if (status === "succeeded") {
+        await sql.query(`update projects set phase='quality' where id=$1`, [task.project_id]);
+      }
+    }
+  }
+
   if (task.task_type === "smoke") {
-    const payload = typeof task.payload === "object" && task.payload ? task.payload as Record<string, unknown> : {};
     const deploymentId = typeof payload.deploymentId === "string" ? payload.deploymentId : null;
     if (deploymentId) {
       const smokeStatus = status === "succeeded" ? "passed" : "failed";
@@ -246,18 +273,27 @@ export async function completeTask(input: { id: string; leaseToken: string; outc
       }
     }
   }
+
   const previewUrl = typeof input.result.previewUrl === "string" ? input.result.previewUrl : null;
   if (status === "succeeded" && previewUrl && task.project_id) {
     const previewId = `agent:${input.id}`;
     await sql.query(
       `insert into deployment_previews(id,project_id,environment,git_sha,git_ref,url,status,quality_status,ready_at)
        values($1,$2,'preview',$3,$4,$5,'ready','running',now())
-       on conflict(id) do update set url=excluded.url,status='ready',updated_at=now()`,
+       on conflict(id) do update set url=excluded.url,status='ready',quality_status='running',updated_at=now()`,
       [previewId, task.project_id, input.result.gitSha ?? null, input.result.gitRef ?? null, previewUrl],
     );
-    await enqueueTask({ projectId: String(task.project_id), type: "smoke", executor: "worker", priority: 95,
-      payload: { summary: `Smoke test ${previewUrl}`, deploymentId: previewId, baseUrl: previewUrl }, idempotencyKey: `smoke:${previewId}` });
+    await enqueueTask({
+      projectId: String(task.project_id),
+      type: "rubric",
+      executor: "github_dispatch",
+      priority: 98,
+      payload: { summary: `Archic visual review ${previewUrl}`, deploymentId: previewId, baseUrl: previewUrl },
+      idempotencyKey: `rubric:${previewId}`,
+      maxAttempts: 2,
+    });
   }
+
   await sql.query(`insert into audit_log(actor,action,entity_type,entity_id,metadata) values($1,$2,'agent_task',$3,$4::jsonb)`,
     [String(task.lease_owner ?? "worker"), `task.${status}`, input.id, JSON.stringify({ attempt: task.attempt, error: input.error ?? null })]);
   return status;

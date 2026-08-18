@@ -12,6 +12,47 @@ Para llegar a cliente, un proyecto necesita simultáneamente:
 
 El boundary de despliegue vuelve a comprobar la última rúbrica persistida antes de crear una decisión `final_approval`.
 
+## Automatic visual review
+
+Cuando un agente produce un `previewUrl`, Control no salta directamente a smoke. El recorrido es:
+
+1. registrar el preview exacto;
+2. crear un task `rubric` para ese deployment;
+3. enrutar ese task al **worker visual central de Archic Control**, sin requerir cambios en el repositorio del proyecto;
+4. el worker abre la URL pública en Chromium;
+5. captura hasta cuatro páginas relevantes, siempre incluyendo la home;
+6. para cada página toma evidencia desktop (1440×900) y mobile (390×844);
+7. además recoge texto renderizado, headings, links, imágenes rotas, errores de consola y overflow horizontal;
+8. la evidencia visual se envía a un endpoint task-scoped de Control;
+9. el reviewer multimodal aplica Golden Eight + S01–S50 + G01–G10 y devuelve una revisión estructurada;
+10. **Control calcula la nota**, aplica penalizaciones y persiste el run `archic-rubric`;
+11. sólo `CLIENT_READY` o `FLAGSHIP_READY` desbloquean el task de smoke/journeys.
+
+El modelo no puede aprobar un deployment por sí solo: propone scoring/evidencia estructurada; el evaluador determinista de Control aplica thresholds y el boundary final vuelve a comprobar benchmark, rúbrica y smoke.
+
+### Repair loop
+
+Si el report queda en `INTERNAL_ONLY` o `REJECT`, Control convierte como máximo los tres arreglos de mayor impacto en `findings` de fuente `rubric` y crea tareas de autofix acotadas. Un review posterior resuelve/cancela los findings visuales anteriores antes de crear nuevos, evitando que sobrevivan correcciones obsoletas.
+
+El autofix sigue teniendo su safety boundary normal: contexto limitado al repositorio, sin secretos/CI/deploy/database, máximo cuatro archivos y draft PR; si la corrección es demasiado amplia, el planner puede rechazarla en vez de improvisar un rediseño general.
+
+### Evidencia que sí observa el reviewer
+
+- captura desktop;
+- captura mobile;
+- contenido realmente renderizado;
+- jerarquía de headings;
+- links visibles;
+- imágenes rotas;
+- overflow horizontal en desktop o mobile;
+- errores de consola recogidos durante la captura.
+
+### Evidencia que no debe inventar
+
+La revisión visual no afirma haber verificado comportamiento oculto, datos de negocio externos o flujos no observados. Journeys, smoke y benchmark siguen siendo la fuente de verdad para ejecución técnica.
+
+Las capturas se comprimen y viajan únicamente como input de la revisión; no se almacenan en `quality_runs`. Se persisten el review estructurado y el report, no los JPEG base64.
+
 ## Page Modes
 
 Cada página declara un modo dominante:
@@ -47,14 +88,16 @@ No se introduce una tabla paralela. Cada revisión se guarda en `quality_runs` c
 - `standard_version = 'rubric-1.0'`;
 - `raw_score` = score antes de penalizaciones;
 - `final_score` = Archic Score;
-- `input` = evidencia estructurada del reviewer;
+- `input` = revisión estructurada del reviewer **sin capturas base64**;
 - `output` = report calculado por Control.
 
 ## API
 
 `GET /api/quality/rubric` devuelve el contrato activo. Requiere bearer `INTEGRATION_SECRET`.
 
-`POST /api/quality/rubric` recibe una revisión y persiste el report calculado.
+`POST /api/quality/rubric` recibe una revisión externa autorizada y persiste el report calculado.
+
+`POST /api/agents/tasks/[id]/rubric-review` es el boundary interno para el reviewer automático. Requiere el lease token del task `rubric`, no un secreto global.
 
 Ejemplo mínimo de página dentro de `pages`:
 

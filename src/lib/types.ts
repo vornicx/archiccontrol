@@ -82,7 +82,7 @@ export interface DashboardData {
 }
 
 export type AgentTaskStatus = "queued" | "dispatched" | "leased" | "running" | "succeeded" | "failed" | "blocked" | "cancelled";
-export type AgentTaskType = "research" | "implement" | "autofix" | "quality" | "playwright" | "benchmark" | "preview" | "smoke" | "monitor";
+export type AgentTaskType = "research" | "implement" | "autofix" | "quality" | "rubric" | "playwright" | "benchmark" | "preview" | "smoke" | "monitor";
 
 export interface AgentTask {
   id: string;
