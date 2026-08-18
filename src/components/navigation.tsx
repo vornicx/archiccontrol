@@ -15,7 +15,7 @@ const sections = [
   {
     label: "Comercial",
     items: [
-      { href: "/sales", label: "Ventas" },
+      { href: "/sales", label: "CRM" },
       { href: "/prospects", label: "Prospectos" },
     ],
   },
