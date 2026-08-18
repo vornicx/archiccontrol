@@ -1,0 +1,93 @@
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 110px 120px 120px auto;
+  gap: 10px;
+  align-items: end;
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-1);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label,
+.checkbox span {
+  color: var(--paper-2);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.field input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-0);
+  color: var(--paper-0);
+  padding: 9px 11px;
+}
+
+.checkbox {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.save {
+  min-height: 42px;
+  border: 1px solid var(--signal);
+  border-radius: var(--control-interactive-radius);
+  background: var(--signal);
+  color: var(--signal-ink);
+  padding: 9px 13px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.key {
+  margin-top: 5px;
+  color: var(--paper-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+}
+
+.note {
+  margin: 0 0 20px;
+  color: var(--paper-1);
+  max-width: 72ch;
+}
+
+@media (max-width: 900px) {
+  .stage {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stage > :first-child,
+  .save {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .stage { grid-template-columns: 1fr; }
+  .stage > :first-child,
+  .save { grid-column: auto; }
+}
