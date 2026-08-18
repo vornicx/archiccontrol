@@ -17,7 +17,7 @@
 .board {
   overflow-x: auto;
   padding: 2px 2px 16px;
-  scrollbar-color: #cfc8bb transparent;
+  scrollbar-color: var(--crm-border-strong) transparent;
 }
 
 .grid {
@@ -36,20 +36,20 @@
   overflow: hidden;
   border: 1px solid var(--crm-border);
   border-radius: 15px;
-  background: #f1ece2;
+  background: var(--crm-panel-neutral);
 }
 
 .column[data-stage="contacted"],
 .column[data-stage="researched"],
-.column[data-stage="prototype"] { background: #edf1f3; }
+.column[data-stage="prototype"] { background: var(--crm-panel-blue); }
 
 .column[data-stage="interested"],
 .column[data-stage="meeting"],
 .column[data-stage="proposal"],
-.column[data-stage="negotiation"] { background: #edf1e9; }
+.column[data-stage="negotiation"] { background: var(--crm-panel-green); }
 
-.column[data-stage="won"] { background: #e9f0e8; }
-.column[data-stage="lost"] { background: #f3e9e6; }
+.column[data-stage="won"] { background: var(--crm-panel-won); }
+.column[data-stage="lost"] { background: var(--crm-panel-lost); }
 
 .columnHead {
   padding: 15px;
@@ -220,7 +220,7 @@
   content: "";
 }
 
-.owner[data-owner="antero"]::before { background: #9b7849; }
+.owner[data-owner="antero"]::before { background: var(--crm-owner-antero); }
 .owner[data-owner="vadim"]::before { background: var(--crm-blue); }
 
 .score {
