@@ -6,9 +6,10 @@ import type { ReactNode } from "react";
 import styles from "./sales-shell.module.css";
 
 const items = [
-  { href: "/sales", label: "Hoy" },
+  { href: "/sales", label: "Resumen" },
+  { href: "/sales/opportunities", label: "Oportunidades" },
   { href: "/sales/pipeline", label: "Pipeline" },
-  { href: "/sales/follow-ups", label: "Seguimientos" },
+  { href: "/sales/follow-ups", label: "Agenda" },
   { href: "/sales/performance", label: "Rendimiento" },
   { href: "/sales/pipeline/settings", label: "Configurar" },
 ] as const;
@@ -21,9 +22,9 @@ export function SalesShell({ children }: { children: ReactNode }) {
       <div className={styles.contextBar}>
         <div className={styles.identity}>
           <span>Comercial</span>
-          <strong>Ventas</strong>
+          <strong>CRM</strong>
         </div>
-        <nav className={styles.subnav} aria-label="Área de ventas">
+        <nav className={styles.subnav} aria-label="Área comercial">
           {items.map((item) => {
             const active = item.href === "/sales"
               ? pathname === "/sales"
