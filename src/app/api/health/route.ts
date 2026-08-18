@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hasDatabase } from "@/lib/db";
+import { qualityRubric } from "@/quality/rubric";
 import { qualityStandard } from "@/quality/standard";
 import { isGithubAutomationConfigured } from "@/lib/github-app";
 
@@ -21,6 +22,7 @@ export async function GET() {
     ok: ready,
     service: "archic-control",
     standardVersion: qualityStandard.version,
+    rubricVersion: qualityRubric.version,
     persistence: persistenceReady ? "postgres" : "bootstrap",
     autofixWorkerReady,
     deploymentReady: persistenceReady && autofixWorkerReady && Object.values(integrations).every(Boolean),
