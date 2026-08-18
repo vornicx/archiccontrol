@@ -13,12 +13,14 @@ test("Control abre directamente y muestra el centro de mando", async ({ page }) 
   await expect(page.getByText("La Bocana", { exact: true })).toBeVisible();
 });
 
-test("la prospección diaria admite flagships independientes el mismo día", async ({ page }) => {
+test("la prospección diaria separa estimación automática y decisión comercial", async ({ page }) => {
   await openControl(page);
   await page.getByRole("link", { name: "Prospectos", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Prospección diaria" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Oportunidades cualificadas" })).toBeVisible();
-  await expect(page.getByText("flagships objetivo al día", { exact: true })).toBeVisible();
+  await expect(page.getByText("Estimación Control", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Potencial elegido", { exact: true })).toBeVisible();
+  await expect(page.getByText(/3 flagships objetivo al día/)).toBeVisible();
 });
 
 test("el CRM funciona como espacio comercial operativo dentro de Control", async ({ page }) => {
@@ -61,7 +63,7 @@ test("el estándar de calidad y el control de proyecto son navegables", async ({
 test("las vistas principales móviles no tienen overflow horizontal", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("mobile"), "comprobación exclusiva de móvil");
   await openControl(page);
-  for (const path of ["/", "/sales", "/sales/opportunities"]) {
+  for (const path of ["/", "/prospects", "/sales", "/sales/opportunities"]) {
     await page.goto(path);
     const dimensions = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
