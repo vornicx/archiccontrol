@@ -5,7 +5,7 @@ import "./sales.css";
 
 export const metadata: Metadata = {
   title: "CRM",
-  description: "CRM comercial interno de Archic.",
+  description: "CRM comercial de Archic.",
 };
 
 export const dynamic = "force-dynamic";
