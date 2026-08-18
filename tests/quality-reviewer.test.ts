@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { rubricPageEvidenceSchema } from "../src/quality/reviewer";
+import { rubricPageEvidenceSchema } from "../src/quality/reviewer-evidence";
 
 function pageEvidence(overrides: Record<string, unknown> = {}) {
   return {
