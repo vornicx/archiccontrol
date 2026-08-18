@@ -147,6 +147,92 @@ export async function saveProspect(input: {
   ]);
 }
 
+export async function updateProspectManual(input: {
+  id: string;
+  name: string;
+  city: string | null;
+  category: string | null;
+  websiteUrl: string | null;
+  socialUrl: string | null;
+  status: ProspectRecord["status"];
+  potentialPrice: number | null;
+  maintenanceMonthly: number | null;
+  contactName: string | null;
+  contactRole: string | null;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  outreachMessage: string | null;
+  manualNote: string | null;
+}): Promise<void> {
+  if (!hasDatabase()) throw new Error("DATABASE_URL is required to edit prospects");
+  const rows = await db().query(`select research,price,outreach from prospects where id=$1 limit 1`, [input.id]) as Row[];
+  if (!rows[0]) throw new Error("Prospect not found");
+
+  const currentResearch = asJson<Record<string, unknown>>(rows[0].research, {});
+  const currentPrice = asJson<Record<string, unknown>>(rows[0].price, {});
+  const currentOutreach = asJson<Record<string, unknown>>(rows[0].outreach, {});
+  const currentContact = asJson<Record<string, unknown>>(currentResearch.contact, {});
+  const currentPerson = asJson<Record<string, unknown>>(currentResearch.contactPerson, {});
+  const updatedAt = new Date().toISOString();
+
+  const research = {
+    ...currentResearch,
+    contact: {
+      ...currentContact,
+      email: input.email,
+      phone: input.phone,
+      whatsapp: input.whatsapp,
+    },
+    contactPerson: {
+      ...currentPerson,
+      name: input.contactName ?? "",
+      role: input.contactRole,
+      verified: Boolean(currentPerson.verified),
+      manuallyEdited: true,
+    },
+    manualNote: input.manualNote,
+    manualUpdatedAt: updatedAt,
+  };
+  const price = {
+    ...currentPrice,
+    potential: input.potentialPrice,
+    maintenanceMonthly: input.maintenanceMonthly,
+    potentialSetBy: "manual",
+    potentialUpdatedAt: updatedAt,
+  };
+  const outreach = {
+    ...currentOutreach,
+    message: input.outreachMessage ?? "",
+  };
+
+  await db().query(`
+    update prospects set
+      name=$2,
+      city=$3,
+      category=$4,
+      website_url=$5,
+      social_url=$6,
+      status=$7,
+      research=$8::jsonb,
+      price=$9::jsonb,
+      outreach=$10::jsonb,
+      updated_at=now()
+    where id=$1
+  `, [
+    input.id,
+    input.name,
+    input.city,
+    input.category,
+    input.websiteUrl,
+    input.socialUrl,
+    input.status,
+    JSON.stringify(research),
+    JSON.stringify(price),
+    JSON.stringify(outreach),
+  ]);
+}
+
 export async function createProspectDecision(input: {
   id: string;
   title: string;
