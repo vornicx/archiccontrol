@@ -164,12 +164,12 @@ async function buildAutofixContext() {
   return { fileIndex: Array.from(new Set(fileIndex)).slice(0, 700), files, repositoryPaths };
 }
 
-async function postJson(path, body, timeoutMs = 60_000) {
+async function postJson(path, body) {
   const response = await fetch(`${controlUrl}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(timeoutMs),
+    signal: AbortSignal.timeout(60_000),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(`Archic Control ${response.status} ${path}: ${payload.error || "request failed"}`);
@@ -305,158 +305,12 @@ async function executeAutofix() {
   };
 }
 
-function cleanReviewPath(value, baseUrl) {
-  try {
-    const url = new URL(String(value || ""), baseUrl);
-    const base = new URL(baseUrl);
-    if (url.origin !== base.origin) return null;
-    const path = `${url.pathname}${url.search}`;
-    if (!path.startsWith("/") || path.length > 300) return null;
-    if (/\.(?:jpg|jpeg|png|webp|svg|gif|pdf|zip|mp4|webm|ico)$/i.test(url.pathname)) return null;
-    if (/(privacy|privacidad|legal|cookie|terms|terminos|login|sign-in|signin|admin|studio|owner|auth)/i.test(url.pathname)) return null;
-    return path || "/";
-  } catch {
-    return null;
-  }
-}
-
-function reviewPathPriority(path) {
-  if (path === "/") return 1000;
-  let score = 0;
-  if (/(book|booking|reserve|reservation|reservas|contact|enquir|checkout|cart)/i.test(path)) score += 180;
-  if (/(propert|homes|listing|fleet|cars|vehicles|models|yacht|rooms|suites|shop|catalog|menu|carta)/i.test(path)) score += 140;
-  if (/(about|story|historia|experience|services|servicios|dining|restaurant|locations|areas|destinations)/i.test(path)) score += 80;
-  score -= Math.max(0, path.split("/").filter(Boolean).length - 2) * 12;
-  return score;
-}
-
-function selectReviewPaths(baseUrl, discoveredLinks) {
-  const requested = Array.isArray(input.pages) ? input.pages.map((page) => typeof page === "string" ? page : page?.path) : [];
-  const candidates = ["/", ...requested, ...discoveredLinks]
-    .map((value) => cleanReviewPath(value, baseUrl))
-    .filter(Boolean);
-  return Array.from(new Set(candidates))
-    .sort((a, b) => reviewPathPriority(b) - reviewPathPriority(a) || a.localeCompare(b))
-    .slice(0, 4);
-}
-
-async function encodeScreenshot(page, fullPage) {
-  for (const quality of [42, 32, 24]) {
-    const buffer = await page.screenshot({ type: "jpeg", quality, fullPage, animations: "disabled" });
-    if (buffer.byteLength <= 300_000) return buffer.toString("base64");
-  }
-  const fallback = await page.screenshot({ type: "jpeg", quality: 20, fullPage: false, animations: "disabled" });
-  if (fallback.byteLength > 310_000) throw new Error("Rubric screenshot exceeds safe request budget");
-  return fallback.toString("base64");
-}
-
-async function captureViewport(browser, baseUrl, path, viewport, collectDom) {
-  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, reducedMotion: "reduce" });
-  const page = await context.newPage();
-  const consoleErrors = [];
-  page.on("console", (message) => {
-    if (message.type() === "error" && consoleErrors.length < 30) consoleErrors.push(message.text().slice(0, 1_000));
-  });
-  page.on("pageerror", (error) => {
-    if (consoleErrors.length < 30) consoleErrors.push(String(error.message || error).slice(0, 1_000));
-  });
-  const url = new URL(path, baseUrl).toString();
-  const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  if (!response || response.status() >= 400) throw new Error(`Rubric capture failed ${response?.status() ?? "no-response"} ${url}`);
-  await page.waitForTimeout(1_200);
-  const imageBase64 = await encodeScreenshot(page, true);
-  let dom = null;
-  if (collectDom) {
-    dom = await page.evaluate(() => {
-      const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
-      const bodyText = normalize(document.body?.innerText || "").slice(0, 20_000);
-      const headings = Array.from(document.querySelectorAll("h1,h2,h3"))
-        .map((node) => normalize(node.textContent))
-        .filter(Boolean)
-        .slice(0, 80);
-      const links = Array.from(document.querySelectorAll("a[href]"))
-        .map((node) => ({ text: normalize(node.textContent).slice(0, 300), href: node.href }))
-        .filter((link) => link.href)
-        .slice(0, 160);
-      const brokenImages = Array.from(document.images)
-        .filter((image) => image.complete && image.naturalWidth === 0)
-        .map((image) => image.currentSrc || image.src || image.alt || "broken-image")
-        .slice(0, 40);
-      return {
-        title: document.title.slice(0, 500),
-        bodyText,
-        headings,
-        links,
-        brokenImages,
-        overflowX: document.documentElement.scrollWidth > window.innerWidth + 2,
-      };
-    });
-  }
-  await context.close();
-  return { imageBase64, dom, consoleErrors };
-}
-
-async function captureRubricEvidence(baseUrl) {
-  const { chromium } = await import("playwright");
-  const browser = await chromium.launch({ headless: true });
-  try {
-    const home = await captureViewport(browser, baseUrl, "/", { width: 1440, height: 900 }, true);
-    const discovered = (home.dom?.links || []).map((link) => link.href);
-    const paths = selectReviewPaths(baseUrl, discovered);
-    const pages = [];
-    for (const path of paths) {
-      const desktop = path === "/" ? home : await captureViewport(browser, baseUrl, path, { width: 1440, height: 900 }, true);
-      const mobile = await captureViewport(browser, baseUrl, path, { width: 390, height: 844 }, true);
-      const dom = desktop.dom;
-      const mobileDom = mobile.dom;
-      if (!dom || !mobileDom) continue;
-      pages.push({
-        path,
-        title: dom.title,
-        bodyText: dom.bodyText,
-        headings: dom.headings,
-        links: dom.links.map((link) => ({ text: link.text, href: link.href })),
-        brokenImages: Array.from(new Set([...dom.brokenImages, ...mobileDom.brokenImages])).slice(0, 40),
-        consoleErrors: Array.from(new Set([...desktop.consoleErrors, ...mobile.consoleErrors])).slice(0, 30),
-        overflowX: dom.overflowX || mobileDom.overflowX,
-        desktopImageBase64: desktop.imageBase64,
-        mobileImageBase64: mobile.imageBase64,
-      });
-    }
-    return pages;
-  } finally {
-    await browser.close();
-  }
-}
-
-async function executeRubricReview() {
-  const baseUrl = input.baseUrl;
-  if (typeof baseUrl !== "string" || !baseUrl.startsWith("https://")) throw new Error("Rubric task requires an HTTPS baseUrl");
-  const pages = await captureRubricEvidence(baseUrl);
-  if (!pages.length) throw new Error("Rubric worker captured no reviewable pages");
-  const payload = await postJson(`/api/agents/tasks/${taskId}/rubric-review`, { leaseToken: callbackToken, pages }, 118_000);
-  if (!payload.report || typeof payload.report !== "object") throw new Error("Rubric reviewer returned no persisted report");
-  evidence.push({ check: "archic-rubric", status: "passed", pages: pages.length, score: payload.report.projectScore, rubricStatus: payload.report.status });
-  return {
-    rubricVersion: payload.report.rubricVersion,
-    archicScore: payload.report.projectScore,
-    archicLevel: payload.report.archicLevel,
-    rubricStatus: payload.report.status,
-    mobileScore: payload.report.mobileScore,
-    totalSlopPenalty: payload.report.totalSlopPenalty,
-    highSlopFindings: payload.report.highSlopFindings,
-    reviewedPages: pages.map((page) => page.path),
-  };
-}
-
 const started = Date.now();
 let taskResult = {};
 if (taskType === "quality") {
   for (const script of ["lint", "typecheck", "test", "build", "test:e2e"]) await run(script);
 } else if (taskType === "autofix") {
   taskResult = await executeAutofix();
-} else if (taskType === "rubric") {
-  taskResult = await executeRubricReview();
 } else if (taskType === "playwright") {
   await run("test:e2e", true);
 } else if (taskType === "smoke") {
