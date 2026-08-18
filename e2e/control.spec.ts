@@ -24,8 +24,14 @@ test("la prospección diaria admite flagships independientes el mismo día", asy
 test("Ventas funciona como CRM operativo dentro de Control", async ({ page }) => {
   await openControl(page);
   await page.getByRole("link", { name: "Ventas", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Ventas", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Resumen", exact: true })).toBeVisible();
+  await expect(page.getByText("Pipeline abierto", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Nuevo prospecto", exact: true })).toBeVisible();
+
+  await page.getByRole("link", { name: "Oportunidades", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Oportunidades", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Buscar oportunidades")).toBeVisible();
+  await expect(page.getByLabel("Filtrar por responsable")).toBeVisible();
 
   await page.getByRole("link", { name: "Nuevo prospecto", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Nuevo prospecto", exact: true })).toBeVisible();
@@ -52,14 +58,17 @@ test("el estándar de calidad y el control de proyecto son navegables", async ({
   await expect(page.getByText(/Too many mobile tap targets/).first()).toBeVisible();
 });
 
-test("el resumen móvil no tiene overflow horizontal", async ({ page }, testInfo) => {
+test("las vistas principales móviles no tienen overflow horizontal", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("mobile"), "comprobación exclusiva de móvil");
   await openControl(page);
-  const dimensions = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-  }));
-  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  for (const path of ["/", "/sales", "/sales/opportunities"]) {
+    await page.goto(path);
+    const dimensions = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  }
   await expect(page.getByRole("navigation", { name: "Navegación principal" })).toBeVisible();
 });
 
