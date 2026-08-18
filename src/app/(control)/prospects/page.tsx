@@ -181,9 +181,9 @@ function ProspectCard({ prospect }: { prospect: ProspectRecord }) {
         </p>
         {downloadUrl ? (
           <div className="prospect-actions">
-            <a className="button button-primary" href={downloadUrl}>Descargar prototipo</a>
+            <a className="button button-primary" href={downloadUrl}>Descargar proyecto ZIP</a>
           </div>
-        ) : <p>La descarga aparecerá cuando exista un commit o artefacto exacto guardado.</p>}
+        ) : <p>El ZIP aparecerá cuando exista un commit o artefacto exacto guardado.</p>}
         {prospect.outreach.message ? <p><strong>Contacto sugerido</strong> {prospect.outreach.message}</p> : null}
         {prospect.error ? <p><strong>Bloqueo</strong> {prospect.error}</p> : null}
       </div>
