@@ -10,6 +10,7 @@ const items = [
   { href: "/sales/pipeline", label: "Pipeline" },
   { href: "/sales/follow-ups", label: "Seguimientos" },
   { href: "/sales/performance", label: "Rendimiento" },
+  { href: "/sales/pipeline/settings", label: "Configurar" },
 ] as const;
 
 export function SalesShell({ children }: { children: ReactNode }) {
@@ -24,7 +25,11 @@ export function SalesShell({ children }: { children: ReactNode }) {
         </div>
         <nav className={styles.subnav} aria-label="Área de ventas">
           {items.map((item) => {
-            const active = item.href === "/sales" ? pathname === "/sales" : pathname.startsWith(item.href);
+            const active = item.href === "/sales"
+              ? pathname === "/sales"
+              : item.href === "/sales/pipeline"
+                ? pathname === "/sales/pipeline"
+                : pathname.startsWith(item.href);
             return (
               <Link
                 href={item.href}
