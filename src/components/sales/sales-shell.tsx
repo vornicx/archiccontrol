@@ -3,41 +3,45 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { Shell } from "@/components/shell";
+import styles from "./sales-shell.module.css";
 
 const items = [
-  { href: "/sales", label: "Hoy", short: "Hoy" },
-  { href: "/sales/pipeline", label: "Embudo", short: "Embudo" },
-  { href: "/sales/follow-ups", label: "Seguimientos", short: "Seguimientos" },
-  { href: "/sales/performance", label: "Rendimiento", short: "Rendimiento" },
-];
+  { href: "/sales", label: "Hoy" },
+  { href: "/sales/pipeline", label: "Pipeline" },
+  { href: "/sales/follow-ups", label: "Seguimientos" },
+  { href: "/sales/performance", label: "Rendimiento" },
+] as const;
 
 export function SalesShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+
   return (
-    <div className="sales-shell">
-      <aside className="sales-rail">
-        <div>
-          <Link href="/sales" className="sales-brand"><span>ARCHIC</span><small>Ventas</small></Link>
-          <nav className="sales-nav" aria-label="Ventas">
+    <Shell>
+      <div className={`sales-workspace ${styles.workspace}`}>
+        <div className={styles.contextBar}>
+          <div className={styles.identity}>
+            <span>Comercial</span>
+            <strong>Ventas</strong>
+          </div>
+          <nav className={styles.subnav} aria-label="Área de ventas">
             {items.map((item) => {
               const active = item.href === "/sales" ? pathname === "/sales" : pathname.startsWith(item.href);
-              return <Link href={item.href} key={item.href} data-active={active}>{item.label}</Link>;
+              return (
+                <Link
+                  href={item.href}
+                  key={item.href}
+                  data-active={active}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
             })}
           </nav>
         </div>
-        <div className="sales-profile">
-          <span className="sales-avatar">A</span>
-          <div><strong>Antero</strong><small>Ventas · Archic</small></div>
-          <Link href="/" aria-label="Volver a Archic Control">Control ↗</Link>
-        </div>
-      </aside>
-      <main className="sales-main" id="main">{children}</main>
-      <nav className="sales-mobile-nav" aria-label="Navegación móvil de ventas">
-        {items.map((item) => {
-          const active = item.href === "/sales" ? pathname === "/sales" : pathname.startsWith(item.href);
-          return <Link href={item.href} key={item.href} data-active={active}>{item.short}</Link>;
-        })}
-      </nav>
-    </div>
+        {children}
+      </div>
+    </Shell>
   );
 }
