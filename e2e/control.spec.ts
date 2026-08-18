@@ -26,23 +26,23 @@ test("el CRM funciona como espacio comercial operativo dentro de Control", async
   await page.getByRole("link", { name: "CRM", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Resumen", exact: true })).toBeVisible();
   await expect(page.getByText("Pipeline abierto", { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Nuevo prospecto", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Nuevo prospecto/ }).first()).toBeVisible();
 
   await page.getByRole("link", { name: "Oportunidades", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Oportunidades", exact: true })).toBeVisible();
   await expect(page.getByLabel("Buscar oportunidades")).toBeVisible();
   await expect(page.getByLabel("Filtrar por responsable")).toBeVisible();
 
-  await page.getByRole("link", { name: "Nuevo prospecto", exact: true }).click();
+  await page.getByRole("link", { name: /Nuevo prospecto/ }).first().click();
   await expect(page.getByRole("heading", { name: "Nuevo prospecto", exact: true })).toBeVisible();
   await expect(page.getByLabel("Nombre del negocio")).toBeVisible();
-  await expect(page.getByLabel("Precio / presupuesto")).toBeVisible();
+  await expect(page.getByLabel("Presupuesto enviado")).toBeVisible();
   await expect(page.getByLabel("Mantenimiento mensual")).toBeVisible();
 
   await page.getByRole("link", { name: "Pipeline", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Pipeline", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Configurar pipeline", exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Configurar pipeline", exact: true }).click();
+  await expect(page.getByRole("link", { name: "Configurar etapas", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Configurar etapas", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Pipeline", exact: true })).toBeVisible();
   await expect(page.getByText("Nombre visible", { exact: true }).first()).toBeVisible();
 });

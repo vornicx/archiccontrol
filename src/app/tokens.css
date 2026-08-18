@@ -54,4 +54,48 @@
   --sales-funnel: #e6e2d8;
   --sales-kpi: #6d695f;
   --sales-mobile-muted: #aaa69d;
+
+  /* CRM light workspace — semantic palette for daily commercial work. */
+  --crm-bg: #f5f1e8;
+  --crm-surface: #fffdf8;
+  --crm-surface-muted: #f8f4eb;
+  --crm-surface-strong: #eee8dc;
+  --crm-surface-hover: #fdfaf4;
+  --crm-surface-focus: #fbfdf9;
+  --crm-surface-danger: #fffaf8;
+  --crm-text: #20251f;
+  --crm-text-soft: #515a50;
+  --crm-text-muted: #7c8379;
+  --crm-placeholder: #9b9f97;
+  --crm-border: #e1dbcf;
+  --crm-border-strong: #d1cabd;
+  --crm-border-hover: #c4bcad;
+  --crm-accent: #65725f;
+  --crm-accent-strong: #4f5d4b;
+  --crm-accent-soft: #e7ece3;
+  --crm-accent-border: #cfdccb;
+  --crm-blue: #607488;
+  --crm-blue-soft: #e8edf1;
+  --crm-blue-border: #ccd7df;
+  --crm-blue-text: #536a7d;
+  --crm-amber: #9a702f;
+  --crm-amber-soft: #f5ead7;
+  --crm-amber-border: #eadbc1;
+  --crm-amber-border-strong: #dfcda9;
+  --crm-amber-text: #805c27;
+  --crm-danger: #a2554c;
+  --crm-danger-soft: #f6e6e2;
+  --crm-danger-border: #e3c8c3;
+  --crm-danger-border-strong: #dfbfb8;
+  --crm-success: #57705b;
+  --crm-success-soft: #e5eee5;
+  --crm-success-border: #c8d8c9;
+  --crm-success-text: #49634e;
+  --crm-owner-antero: #9b7849;
+  --crm-chevron: #aaa9a3;
+  --crm-panel-neutral: #f1ece2;
+  --crm-panel-blue: #edf1f3;
+  --crm-panel-green: #edf1e9;
+  --crm-panel-won: #e9f0e8;
+  --crm-panel-lost: #f3e9e6;
 }

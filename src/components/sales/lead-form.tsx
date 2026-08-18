@@ -39,19 +39,13 @@ export function LeadForm({
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
-          <h2>Negocio y pipeline</h2>
-          <p>Lo mínimo para saber qué es y dónde está.</p>
+          <div><span className={styles.eyebrow}>Esencial</span><h2>Negocio</h2></div>
+          <p>Identifica el negocio y de dónde viene.</p>
         </div>
         <div className={styles.grid}>
-          <div className={styles.field}>
+          <div className={`${styles.field} ${styles.full}`}>
             <label htmlFor="name">Nombre del negocio</label>
-            <input id="name" name="name" defaultValue={lead?.name ?? ""} required />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="stage">Etapa</label>
-            <select id="stage" name="stage" defaultValue={lead?.stage ?? "researched"}>
-              {activeStages.map((stage) => <option value={stage.key} key={stage.key}>{stage.label}</option>)}
-            </select>
+            <input id="name" name="name" defaultValue={lead?.name ?? ""} placeholder="Ej. Cafetería Rosario" required />
           </div>
           <div className={styles.field}>
             <label htmlFor="city">Ciudad / zona</label>
@@ -61,37 +55,9 @@ export function LeadForm({
             <label htmlFor="category">Tipo de negocio</label>
             <input id="category" name="category" defaultValue={lead?.category ?? ""} placeholder="Restaurante, inmobiliaria, renting…" />
           </div>
-          <div className={styles.field}>
-            <label htmlFor="source">Origen</label>
+          <div className={`${styles.field} ${styles.full}`}>
+            <label htmlFor="source">Cómo llegó al CRM</label>
             <input id="source" name="source" defaultValue={lead?.source ?? ""} placeholder="Prospección, recomendación, inbound…" />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="score">Puntuación comercial</label>
-            <input id="score" name="score" type="number" min="0" max="100" step="1" defaultValue={lead?.score ?? ""} />
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHead}>
-          <h2>Dinero</h2>
-          <p>Separar potencial, precio enviado y recurrente.</p>
-        </div>
-        <div className={`${styles.grid} ${styles.triple}`}>
-          <div className={styles.field}>
-            <label htmlFor="estimatedValue">Valor estimado</label>
-            <input id="estimatedValue" name="estimatedValue" type="number" min="0" step="1" defaultValue={lead?.estimatedValue ?? ""} placeholder="700" />
-            <span className={styles.hint}>Potencial antes de presupuestar.</span>
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="quotedPrice">Precio / presupuesto</label>
-            <input id="quotedPrice" name="quotedPrice" type="number" min="0" step="1" defaultValue={lead?.quotedPrice ?? ""} placeholder="650" />
-            <span className={styles.hint}>La cifra que realmente se ofrece.</span>
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="maintenanceMonthly">Mantenimiento mensual</label>
-            <input id="maintenanceMonthly" name="maintenanceMonthly" type="number" min="0" step="1" defaultValue={lead?.maintenanceMonthly ?? ""} placeholder="69" />
-            <span className={styles.hint}>Ingreso recurrente asociado.</span>
           </div>
         </div>
       </section>
@@ -99,8 +65,8 @@ export function LeadForm({
       {includeInitialContact ? (
         <section className={styles.section}>
           <div className={styles.sectionHead}>
-            <h2>Contacto inicial</h2>
-            <p>Después podrás añadir más personas desde la ficha.</p>
+            <div><span className={styles.eyebrow}>Persona</span><h2>Contacto inicial</h2></div>
+            <p>Con uno basta para empezar; podrás añadir más después.</p>
           </div>
           <div className={styles.grid}>
             <div className={styles.field}>
@@ -129,10 +95,16 @@ export function LeadForm({
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
-          <h2>Siguiente movimiento</h2>
-          <p>Todo lead activo debe acabar con una acción clara.</p>
+          <div><span className={styles.eyebrow}>Negocio</span><h2>Comercial</h2></div>
+          <p>Etapa, responsable y dinero en la misma zona.</p>
         </div>
         <div className={styles.grid}>
+          <div className={styles.field}>
+            <label htmlFor="stage">Etapa</label>
+            <select id="stage" name="stage" defaultValue={lead?.stage ?? "researched"}>
+              {activeStages.map((stage) => <option value={stage.key} key={stage.key}>{stage.label}</option>)}
+            </select>
+          </div>
           <div className={styles.field}>
             <label htmlFor="owner">Responsable del lead</label>
             <select id="owner" name="owner" defaultValue={lead?.owner ?? "antero"}>
@@ -141,15 +113,43 @@ export function LeadForm({
             </select>
           </div>
           <div className={styles.field}>
-            <label htmlFor="nextActionOwner">Responsable de la siguiente acción</label>
+            <label htmlFor="score">Puntuación comercial</label>
+            <input id="score" name="score" type="number" min="0" max="100" step="1" defaultValue={lead?.score ?? ""} placeholder="0–100" />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="estimatedValue">Potencial estimado</label>
+            <input id="estimatedValue" name="estimatedValue" type="number" min="0" step="1" defaultValue={lead?.estimatedValue ?? ""} placeholder="700" />
+            <span className={styles.hint}>Antes de presupuestar.</span>
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="quotedPrice">Presupuesto enviado</label>
+            <input id="quotedPrice" name="quotedPrice" type="number" min="0" step="1" defaultValue={lead?.quotedPrice ?? ""} placeholder="650" />
+            <span className={styles.hint}>La cifra ofrecida al cliente.</span>
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="maintenanceMonthly">Mantenimiento mensual</label>
+            <input id="maintenanceMonthly" name="maintenanceMonthly" type="number" min="0" step="1" defaultValue={lead?.maintenanceMonthly ?? ""} placeholder="69" />
+            <span className={styles.hint}>Ingreso recurrente asociado.</span>
+          </div>
+        </div>
+      </section>
+
+      <section className={`${styles.section} ${styles.nextSection}`}>
+        <div className={styles.sectionHead}>
+          <div><span className={styles.eyebrow}>Acción</span><h2>Siguiente paso</h2></div>
+          <p>Si el lead está activo, debe quedar claro qué pasa después.</p>
+        </div>
+        <div className={styles.grid}>
+          <div className={`${styles.field} ${styles.full}`}>
+            <label htmlFor="nextAction">Qué hay que hacer</label>
+            <input id="nextAction" name="nextAction" defaultValue={lead?.nextAction ?? ""} placeholder="Llamar y enseñar el prototipo" />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="nextActionOwner">Quién lo hace</label>
             <select id="nextActionOwner" name="nextActionOwner" defaultValue={lead?.nextActionOwner ?? "antero"}>
               <option value="antero">Antero</option>
               <option value="vadim">Vadim</option>
             </select>
-          </div>
-          <div className={`${styles.field} ${styles.full}`}>
-            <label htmlFor="nextAction">Siguiente acción</label>
-            <input id="nextAction" name="nextAction" defaultValue={lead?.nextAction ?? ""} placeholder="Llamar y enseñar el prototipo" />
           </div>
           <div className={styles.field}>
             <label htmlFor="nextActionAt">Cuándo</label>
@@ -161,8 +161,8 @@ export function LeadForm({
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
-          <h2>Recursos y contexto</h2>
-          <p>Todo lo necesario para retomar el lead en segundos.</p>
+          <div><span className={styles.eyebrow}>Contexto</span><h2>Recursos y notas</h2></div>
+          <p>Lo necesario para retomar la conversación sin investigar otra vez.</p>
         </div>
         <div className={styles.grid}>
           <div className={styles.field}>
