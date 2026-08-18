@@ -1,0 +1,203 @@
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: var(--line-soft);
+}
+
+.metric {
+  min-height: 112px;
+  padding: 18px;
+  background: var(--ink-1);
+}
+
+.metric span {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--paper-2);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.metric strong {
+  display: block;
+  color: var(--paper-0);
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 580;
+  letter-spacing: -.045em;
+}
+
+.metric small {
+  display: block;
+  margin-top: 7px;
+  color: var(--paper-2);
+  font-size: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, .75fr);
+  gap: 26px;
+}
+
+.panel {
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-1);
+}
+
+.panelHead {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.panelHead h2 {
+  margin: 0;
+  color: var(--paper-0);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+}
+
+.panelHead span,
+.panelHead a {
+  color: var(--paper-2);
+  font-size: 10px;
+  text-decoration: none;
+}
+
+.queue {
+  display: grid;
+}
+
+.queueItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 140px;
+  gap: 14px;
+  align-items: center;
+  min-height: 76px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line-soft);
+  color: inherit;
+  text-decoration: none;
+  transition: background 140ms var(--control-interactive-ease);
+}
+
+.queueItem:last-child { border-bottom: 0; }
+.queueItem:hover { background: var(--ink-2); }
+
+.queueMain strong {
+  display: block;
+  color: var(--paper-0);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.queueMain span,
+.queueMeta span,
+.queueAction span {
+  display: block;
+  margin-top: 4px;
+  color: var(--paper-2);
+  font-size: 10px;
+}
+
+.queueMeta strong,
+.queueAction strong {
+  display: block;
+  color: var(--paper-1);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.danger { color: var(--danger) !important; }
+
+.attention {
+  display: grid;
+  gap: 10px;
+}
+
+.attentionCard {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 15px 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--control-interactive-radius);
+  background: var(--ink-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.attentionCard:hover { border-color: var(--line-strong); }
+
+.attentionCard strong {
+  display: block;
+  color: var(--paper-0);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.attentionCard span {
+  display: block;
+  margin-top: 4px;
+  color: var(--paper-2);
+  font-size: 10px;
+}
+
+.count {
+  color: var(--paper-0) !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  letter-spacing: -.04em;
+}
+
+.stageList {
+  display: grid;
+  margin-top: 26px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.stageRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 100px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--paper-1);
+  font-size: 10px;
+}
+
+.stageRow strong { color: var(--paper-0); font-weight: 650; }
+.stageRow span:last-child { text-align: right; }
+
+.empty {
+  padding: 26px 18px;
+  color: var(--paper-2);
+  font-size: 11px;
+}
+
+@media (max-width: 980px) {
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  .metrics { grid-template-columns: 1fr; }
+  .metric { min-height: 0; }
+  .queueItem { grid-template-columns: 1fr; gap: 8px; }
+  .panelHead { align-items: flex-start; }
+  .stageRow { grid-template-columns: minmax(0, 1fr) 70px 80px; }
+}

@@ -26,7 +26,11 @@
   --duration-base: 220ms;
   --ease-out: cubic-bezier(.2, .8, .2, 1);
 
-  /* Sales workspace — deliberately light, editorial and separate from Control. */
+  /* Semantic interaction contract for Control components. */
+  --control-interactive-radius: var(--radius-sm);
+  --control-interactive-ease: var(--ease-out);
+
+  /* Sales workspace — legacy aliases kept while the commercial views converge on Control. */
   --sales-ink: #171713;
   --sales-bg: #f4f2ec;
   --sales-rail: #eeece5;
@@ -51,4 +55,3 @@
   --sales-kpi: #6d695f;
   --sales-mobile-muted: #aaa69d;
 }
-
