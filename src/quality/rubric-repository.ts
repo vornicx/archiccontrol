@@ -85,7 +85,8 @@ export async function ingestRubricReview(value: QualityReviewInput): Promise<Qua
   const runId = runRows[0]?.id ? String(runRows[0].id) : proposedRunId;
 
   await supersedePreviousRubricWork(input.projectId);
-  if (report.status !== "CLIENT_READY" && report.status !== "FLAGSHIP_READY") {
+  const automaticReviewer = input.reviewer === "archic-vision-reviewer";
+  if (automaticReviewer && report.status !== "CLIENT_READY" && report.status !== "FLAGSHIP_READY") {
     const fixes = repairCandidates(report);
     for (const [index, fix] of fixes.entries()) {
       const findingId = `${input.projectId}:rubric:${runId}:${index + 1}`;
