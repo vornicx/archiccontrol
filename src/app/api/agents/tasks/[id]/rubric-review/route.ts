@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ingestRubricReview } from "@/quality/rubric-repository";
-import { reviewPreviewWithGoldenSet, rubricPageEvidenceSchema } from "@/quality/reviewer";
+import { rubricPageEvidenceSchema } from "@/quality/reviewer-evidence";
+import { reviewPreviewWithGoldenSet } from "@/quality/reviewer";
 import { authorizeRubricTask } from "@/quality/reviewer-task";
 
 export const runtime = "nodejs";
