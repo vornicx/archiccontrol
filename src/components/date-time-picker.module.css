@@ -14,7 +14,7 @@
   padding: 9px 11px;
   outline: none;
   box-shadow: var(--shadow-soft);
-  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+  transition: border-color var(--duration-fast) var(--control-interactive-ease), box-shadow var(--duration-fast) var(--control-interactive-ease), background var(--duration-fast) var(--control-interactive-ease);
 }
 
 .select:hover { background: var(--ink-2); }
