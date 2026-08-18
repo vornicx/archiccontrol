@@ -38,6 +38,10 @@ export interface ProspectPrice {
   maximum: number;
   maintenanceMonthly: number | null;
   rationale: string;
+  /** Commercial value selected manually by Archic. It never drives the automatic estimate. */
+  potential?: number | null;
+  potentialSetBy?: "manual";
+  potentialUpdatedAt?: string | null;
 }
 
 export interface ProspectCopy {
@@ -70,6 +74,7 @@ export interface ResearchCandidate {
   evidence: ProspectEvidence[];
   closureContradiction: boolean;
   closureDetail: string | null;
+  manualNote?: string | null;
 }
 
 export interface ProspectRecord {
