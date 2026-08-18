@@ -40,7 +40,7 @@
   place-items: center;
   border-radius: 10px;
   background: var(--crm-accent);
-  color: #fffdf8 !important;
+  color: var(--crm-surface) !important;
   font-size: 13px !important;
   font-weight: 800 !important;
   letter-spacing: -.02em !important;
