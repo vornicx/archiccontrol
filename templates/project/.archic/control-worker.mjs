@@ -343,10 +343,10 @@ function selectReviewPaths(baseUrl, discoveredLinks) {
 async function encodeScreenshot(page, fullPage) {
   for (const quality of [42, 32, 24]) {
     const buffer = await page.screenshot({ type: "jpeg", quality, fullPage, animations: "disabled" });
-    if (buffer.byteLength <= 360_000) return buffer.toString("base64");
+    if (buffer.byteLength <= 300_000) return buffer.toString("base64");
   }
   const fallback = await page.screenshot({ type: "jpeg", quality: 20, fullPage: false, animations: "disabled" });
-  if (fallback.byteLength > 370_000) throw new Error("Rubric screenshot exceeds safe request budget");
+  if (fallback.byteLength > 310_000) throw new Error("Rubric screenshot exceeds safe request budget");
   return fallback.toString("base64");
 }
 
@@ -406,18 +406,19 @@ async function captureRubricEvidence(baseUrl) {
     const pages = [];
     for (const path of paths) {
       const desktop = path === "/" ? home : await captureViewport(browser, baseUrl, path, { width: 1440, height: 900 }, true);
-      const mobile = await captureViewport(browser, baseUrl, path, { width: 390, height: 844 }, false);
+      const mobile = await captureViewport(browser, baseUrl, path, { width: 390, height: 844 }, true);
       const dom = desktop.dom;
-      if (!dom) continue;
+      const mobileDom = mobile.dom;
+      if (!dom || !mobileDom) continue;
       pages.push({
         path,
         title: dom.title,
         bodyText: dom.bodyText,
         headings: dom.headings,
         links: dom.links.map((link) => ({ text: link.text, href: link.href })),
-        brokenImages: dom.brokenImages,
+        brokenImages: Array.from(new Set([...dom.brokenImages, ...mobileDom.brokenImages])).slice(0, 40),
         consoleErrors: Array.from(new Set([...desktop.consoleErrors, ...mobile.consoleErrors])).slice(0, 30),
-        overflowX: dom.overflowX,
+        overflowX: dom.overflowX || mobileDom.overflowX,
         desktopImageBase64: desktop.imageBase64,
         mobileImageBase64: mobile.imageBase64,
       });
