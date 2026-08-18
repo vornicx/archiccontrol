@@ -8,6 +8,7 @@ import {
   updateContactAction,
   updateStageAction,
 } from "@/app/sales/actions";
+import { salesOperationsConfigured } from "@/sales/operations-readiness";
 import {
   getSalesActivities,
   getSalesContacts,
@@ -35,11 +36,12 @@ function whatsappHref(value: string | null): string | null {
 
 export default async function SalesLeadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ lead, persistenceConfigured }, activities, contacts, stages] = await Promise.all([
+  const [{ lead, persistenceConfigured }, activities, contacts, stages, operationsConfigured] = await Promise.all([
     getSalesLead(id),
     getSalesActivities(id),
     getSalesContacts(id),
     getSalesPipelineStages(),
+    salesOperationsConfigured(),
   ]);
   if (!lead) notFound();
 
@@ -66,7 +68,9 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
       </header>
 
       {!persistenceConfigured ? (
-        <div className="sales-alert"><strong>Modo de prueba.</strong> La ficha se puede revisar; para guardar cambios hay que aplicar las migraciones de Ventas.</div>
+        <div className="sales-alert"><strong>Modo de prueba.</strong> La ficha se puede revisar; para guardar actividad hay que configurar la persistencia de Ventas.</div>
+      ) : !operationsConfigured ? (
+        <div className="sales-alert"><strong>CRM pendiente de migración.</strong> Las llamadas y cambios de etapa siguen disponibles, pero precios ampliados, contactos y configuración requieren la migración 006.</div>
       ) : null}
 
       <div className="sales-detail-grid">
@@ -137,13 +141,13 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
                         <form action={setPrimaryContactAction}>
                           <input type="hidden" name="leadId" value={lead.id} />
                           <input type="hidden" name="contactId" value={contact.id} />
-                          <button className={styles.contactAction} type="submit" disabled={!persistenceConfigured}>Hacer principal</button>
+                          <button className={styles.contactAction} type="submit" disabled={!operationsConfigured}>Hacer principal</button>
                         </form>
                       ) : null}
                       <form action={deleteContactAction}>
                         <input type="hidden" name="leadId" value={lead.id} />
                         <input type="hidden" name="contactId" value={contact.id} />
-                        <button className={`${styles.contactAction} ${styles.danger}`} type="submit" disabled={!persistenceConfigured}>Eliminar</button>
+                        <button className={`${styles.contactAction} ${styles.danger}`} type="submit" disabled={!operationsConfigured}>Eliminar</button>
                       </form>
                     </div>
                     <details className={styles.editDetails}>
@@ -152,14 +156,14 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
                         <input type="hidden" name="leadId" value={lead.id} />
                         <input type="hidden" name="contactId" value={contact.id} />
                         <input type="hidden" name="wasPrimary" value={String(contact.isPrimary)} />
-                        <input name="name" defaultValue={contact.name} placeholder="Nombre" required disabled={!persistenceConfigured} />
-                        <input name="role" defaultValue={contact.role ?? ""} placeholder="Cargo / por quién preguntar" disabled={!persistenceConfigured} />
-                        <input name="phone" defaultValue={contact.phone ?? ""} inputMode="tel" placeholder="Teléfono" disabled={!persistenceConfigured} />
-                        <input name="whatsapp" defaultValue={contact.whatsapp ?? ""} inputMode="tel" placeholder="WhatsApp" disabled={!persistenceConfigured} />
-                        <input className={styles.full} name="email" defaultValue={contact.email ?? ""} type="email" placeholder="Correo" disabled={!persistenceConfigured} />
-                        <textarea className={styles.full} name="notes" defaultValue={contact.notes ?? ""} placeholder="Notas sobre esta persona" disabled={!persistenceConfigured} />
-                        <label className={`${styles.checkbox} ${styles.full}`}><input type="checkbox" name="isPrimary" defaultChecked={contact.isPrimary} disabled={!persistenceConfigured} /> Contacto principal</label>
-                        <button className={`sales-button ${styles.full}`} type="submit" disabled={!persistenceConfigured}>Guardar contacto</button>
+                        <input name="name" defaultValue={contact.name} placeholder="Nombre" required disabled={!operationsConfigured} />
+                        <input name="role" defaultValue={contact.role ?? ""} placeholder="Cargo / por quién preguntar" disabled={!operationsConfigured} />
+                        <input name="phone" defaultValue={contact.phone ?? ""} inputMode="tel" placeholder="Teléfono" disabled={!operationsConfigured} />
+                        <input name="whatsapp" defaultValue={contact.whatsapp ?? ""} inputMode="tel" placeholder="WhatsApp" disabled={!operationsConfigured} />
+                        <input className={styles.full} name="email" defaultValue={contact.email ?? ""} type="email" placeholder="Correo" disabled={!operationsConfigured} />
+                        <textarea className={styles.full} name="notes" defaultValue={contact.notes ?? ""} placeholder="Notas sobre esta persona" disabled={!operationsConfigured} />
+                        <label className={`${styles.checkbox} ${styles.full}`}><input type="checkbox" name="isPrimary" defaultChecked={contact.isPrimary} disabled={!operationsConfigured} /> Contacto principal</label>
+                        <button className={`sales-button ${styles.full}`} type="submit" disabled={!operationsConfigured}>Guardar contacto</button>
                       </form>
                     </details>
                   </article>
@@ -170,14 +174,14 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
 
             <form action={addContactAction} className={styles.contactForm}>
               <input type="hidden" name="leadId" value={lead.id} />
-              <input name="name" placeholder="Nombre" required disabled={!persistenceConfigured} />
-              <input name="role" placeholder="Cargo / por quién preguntar" disabled={!persistenceConfigured} />
-              <input name="phone" inputMode="tel" placeholder="Teléfono" disabled={!persistenceConfigured} />
-              <input name="whatsapp" inputMode="tel" placeholder="WhatsApp" disabled={!persistenceConfigured} />
-              <input className={styles.full} name="email" type="email" placeholder="Correo" disabled={!persistenceConfigured} />
-              <textarea className={styles.full} name="notes" placeholder="Notas sobre esta persona" disabled={!persistenceConfigured} />
-              <label className={`${styles.checkbox} ${styles.full}`}><input type="checkbox" name="isPrimary" disabled={!persistenceConfigured} /> Usar como contacto principal</label>
-              <button className={`sales-button ${styles.full}`} type="submit" disabled={!persistenceConfigured}>Añadir contacto</button>
+              <input name="name" placeholder="Nombre" required disabled={!operationsConfigured} />
+              <input name="role" placeholder="Cargo / por quién preguntar" disabled={!operationsConfigured} />
+              <input name="phone" inputMode="tel" placeholder="Teléfono" disabled={!operationsConfigured} />
+              <input name="whatsapp" inputMode="tel" placeholder="WhatsApp" disabled={!operationsConfigured} />
+              <input className={styles.full} name="email" type="email" placeholder="Correo" disabled={!operationsConfigured} />
+              <textarea className={styles.full} name="notes" placeholder="Notas sobre esta persona" disabled={!operationsConfigured} />
+              <label className={`${styles.checkbox} ${styles.full}`}><input type="checkbox" name="isPrimary" disabled={!operationsConfigured} /> Usar como contacto principal</label>
+              <button className={`sales-button ${styles.full}`} type="submit" disabled={!operationsConfigured}>Añadir contacto</button>
             </form>
           </section>
 
